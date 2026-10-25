@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
 
 test("explicit V1 issuance reports structural verification", async ({ page, open }) => {
   await open("/rkp-device", { locale: "zh-CN" })
-  await page.getByRole("combobox", { name: "协议" }).click()
+  await page.getByRole("combobox", { name: "协议", exact: true }).click()
   await page.getByRole("option", { name: "V1 AIDL", exact: true }).click()
   await page.getByRole("button", { name: "签发 RKP keybox", exact: true }).click()
   await page
@@ -59,7 +59,7 @@ test("warns before installing an issued RKP keybox into OMK", async ({ page, ope
 
 test("native V1 backup can be selected without an AIDL APK", async ({ page, open }) => {
   await open("/rkp-device", { query: { rkp: "v2-only" } })
-  await page.getByRole("combobox", { name: "Protocol" }).click()
+  await page.getByRole("combobox", { name: "Protocol", exact: true }).click()
   await expect(page.getByRole("option", { name: "V1 AIDL", exact: true })).toBeDisabled()
   await page.getByRole("option", { name: "V1 Native (0x311e)", exact: true }).click()
   await page.getByRole("button", { name: "Issue RKP keybox", exact: true }).click()
@@ -78,7 +78,7 @@ test("native V1 backup can be selected without an AIDL APK", async ({ page, open
 
 test("native V1 is disabled when the vendor resources are missing", async ({ page, open }) => {
   await open("/rkp-device", { query: { rkp: "v1-only" } })
-  await page.getByRole("combobox", { name: "Protocol" }).click()
+  await page.getByRole("combobox", { name: "Protocol", exact: true }).click()
   await expect(page.getByRole("option", { name: "V1 Native (0x311e)", exact: true })).toBeDisabled()
 })
 

@@ -58,8 +58,9 @@ if [ -f "$MODPATH/play-integrity/pif-engine" ]; then
     if [ -L "$PIF_DATA" ] || [ -L "$PIF_DATA/options.json" ]; then
       abort "! Unsafe Play Integrity configuration path."
     fi
-    mkdir -p "$PIF_DATA" && chmod 0700 "$PIF_DATA" \
-      || abort "! Cannot prepare Play Integrity configuration."
+    if ! mkdir -p "$PIF_DATA" || ! chmod 0700 "$PIF_DATA"; then
+      abort "! Cannot prepare Play Integrity configuration."
+    fi
     PIF_TEMP="$PIF_DATA/.renewal-options-$$.tmp"
     (set -C; printf '%s\n' '{"enabled":false}' > "$PIF_TEMP") \
       || abort "! Cannot stage Play Integrity defaults."

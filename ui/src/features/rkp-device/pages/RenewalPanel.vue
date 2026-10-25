@@ -32,6 +32,7 @@ const status = useQuery({
 })
 const protocol = ref<RenewalProtocol>()
 const confirmation = ref<"enable" | "resume" | "discard">("enable")
+const confirmationLabel = computed(() => t(`renewal.${confirmation.value}`))
 const confirmOpen = ref(false)
 watch(
   status.data,
@@ -187,13 +188,8 @@ const rows = computed(() => {
     </QueryState>
     <ConfirmDialog
       v-model:open="confirmOpen"
-      :title="
-        confirmation === 'discard'
-          ? t('renewal.discard')
-          : confirmation === 'enable'
-            ? t('renewal.enable')
-            : t('renewal.resume')
-      "
+      :title="confirmationLabel"
+      :confirm-label="confirmationLabel"
       :description="
         confirmation === 'discard'
           ? t('renewal.discardConfirm')

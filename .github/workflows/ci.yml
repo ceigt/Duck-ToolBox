@@ -329,15 +329,18 @@ jobs:
           else
             code="$(git rev-list --count HEAD)"
             # Canary builds count commits, so every push is newer than the one before.
-            sed -i "s/^versionCode=.*/versionCode=${code}/" module/module.prop
             name="${MODULE_ID}-${version}-${code}-canary"
             version="${version} (${code}-canary)"
-            sed -i "s/^version=.*/version=${version}/" module/module.prop
           fi
           install -m 0755 artifact/bin/duckd module/bin/duckd
           cp README.md CHANGELOG.md module/
           mkdir -p dist
-          python3 scripts/package-module.py --binary module/bin/duckd --output "dist/${name}.zip"
+          python3 scripts/package-module.py --channel "${RELEASE_CHANNEL}" --binary module/bin/duckd --output "dist/${name}.zip"
+          if [ "${RELEASE_CHANNEL}" != stable ]; then
+            # Validate the compiled base version first; keep artifact metadata equal to the ZIP.
+            sed -i "s/^versionCode=.*/versionCode=${code}/" module/module.prop
+            sed -i "s/^version=.*/version=${version}/" module/module.prop
+          fi
           (cd dist && sha256sum "${name}.zip" > "${name}.zip.sha256")
           {
             echo "MODULE_VERSION=${version}"
