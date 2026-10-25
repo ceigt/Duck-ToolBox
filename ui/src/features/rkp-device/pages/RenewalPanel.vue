@@ -117,9 +117,9 @@ const rows = computed(() => {
         </Alert>
         <p class="text-muted-foreground text-sm">{{ t("renewal.privacy") }}</p>
         <div class="flex max-w-sm flex-col gap-2">
-          <Label>{{ t("renewal.protocol") }}</Label>
+          <Label for="renewal-protocol">{{ t("renewal.protocol") }}</Label>
           <Select v-model="protocol" :disabled="protocolLocked || change.isPending.value">
-            <SelectTrigger
+            <SelectTrigger id="renewal-protocol"
               ><SelectValue :placeholder="t('renewal.chooseProtocol')"
             /></SelectTrigger>
             <SelectContent>

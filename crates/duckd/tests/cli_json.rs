@@ -436,32 +436,35 @@ fn tricky_store_keybox_install_rejects_bad_xml() {
 }
 
 #[test]
-fn tricky_store_set_aosp_installs_bundled_keybox() {
+fn tricky_store_set_aosp_rejects_expired_box_without_replacing_current() {
     let env = env("ts-aosp");
     install_backend(&env, "tricky_store", 246);
 
-    let payload = run(&env, &["tricky-store", "keybox", "set-aosp", "--json"]);
-    assert_eq!(payload["ok"], true);
-    assert_eq!(payload["data"]["summary"]["has_ecdsa"], true);
-    assert_eq!(payload["data"]["summary"]["has_rsa"], true);
-
+    run(&env, &["tricky-store", "keybox", "generate", "--json"]);
     let installed = env.sysroot.join("data/adb/tricky_store/keybox.xml");
-    assert!(Path::new(&installed).is_file());
+    let previous = fs::read(&installed).unwrap();
+    let output = command(&env)
+        .args(["tricky-store", "keybox", "set-aosp", "--json"])
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    let payload: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(payload["error"]["code"], "invalid_keybox");
+    assert_eq!(fs::read(&installed).unwrap(), previous);
 }
 
 #[test]
 fn tricky_store_keybox_import_accepts_picked_content() {
     let env = env("ts-import");
     install_backend(&env, "tricky_store", 246);
-    let aosp = fs::read_to_string(
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../duck-tricky-store/assets/aosp-keybox.xml"),
-    )
-    .unwrap();
+    // Fresh local test material remains valid independently of the public AOSP expiry.
+    run(&env, &["tricky-store", "keybox", "generate", "--json"]);
+    let content = fs::read_to_string(env.sysroot.join("data/adb/tricky_store/keybox.xml")).unwrap();
 
     let output = run_json(
         &env,
         &["tricky-store", "keybox", "import", "--stdin-json"],
-        &serde_json::json!({ "content": aosp }),
+        &serde_json::json!({ "content": content }),
     );
     assert!(
         output.status.success(),

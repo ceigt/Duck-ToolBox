@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { lstatSync, readFileSync, readlinkSync } from "node:fs"
+import { lstatSync, mkdirSync, readFileSync, readlinkSync, writeFileSync } from "node:fs"
 import path from "node:path"
 
 import { afterEach, describe, expect, it } from "vitest"
@@ -96,14 +96,15 @@ describe.skipIf(!hasDuckd)("Tricky Store API against the real duckd", CONTRACT, 
 
     it("installs keyboxes from every source", async () => {
       host = installHost({ ...device, ...packages })
-      const aosp = await trickyStoreApi.keyboxAosp()
-      expect(aosp.summary.keyboxes).toBe(1)
+      await expect(trickyStoreApi.keyboxAosp()).rejects.toMatchObject({ code: "invalid_keybox" })
       const generated = await trickyStoreApi.keyboxGenerate()
-      expect(generated.backup_path).not.toBeNull()
-      const imported = await trickyStoreApi.keyboxImport(AOSP_KEYBOX)
+      expect(generated.summary.keyboxes).toBe(1)
+      const valid = readFileSync(host.path(generated.target_path), "utf8")
+      const imported = await trickyStoreApi.keyboxImport(valid)
+      expect(imported.backup_path).not.toBeNull()
       expect(imported.source).toBe("local")
-      const local = await trickyStoreApi.keyboxInstall(aosp.target_path)
-      expect(local.target_path).toBe(aosp.target_path)
+      const local = await trickyStoreApi.keyboxInstall(generated.target_path)
+      expect(local.target_path).toBe(generated.target_path)
       await expect(trickyStoreApi.keyboxImport("<not a keybox/>")).rejects.toMatchObject({
         code: "invalid_keybox",
       })
@@ -122,14 +123,13 @@ describe.skipIf(!hasDuckd)("Tricky Store API against the real duckd", CONTRACT, 
   })
 
   it("installs EC-only keyboxes for OMK from files, browser imports and downloads", async () => {
-    const ecOnly = AOSP_KEYBOX.replace(/\s*<Key algorithm="rsa">[\s\S]*?<\/Key>/, "")
-    host = installHost({
-      ...backends["oh-my-keymint"],
-      files: {
-        ...backends["oh-my-keymint"]!.files,
-        "/storage/emulated/0/ec-only.xml": ecOnly,
-      },
-    })
+    host = installHost(backends["oh-my-keymint"])
+    const generated = await trickyStoreApi.keyboxGenerate()
+    const valid = readFileSync(host.path(generated.target_path), "utf8")
+    const ecOnly = valid.replace(/\s*<Key algorithm="rsa">[\s\S]*?<\/Key>/, "")
+    const source = host.path("/storage/emulated/0/ec-only.xml")
+    mkdirSync(path.dirname(source), { recursive: true })
+    writeFileSync(source, ecOnly)
     server = await serve({ "/ec-only.xml": ecOnly })
 
     for (const install of [
@@ -142,21 +142,23 @@ describe.skipIf(!hasDuckd)("Tricky Store API against the real duckd", CONTRACT, 
       expect(readFileSync(host.path(result.target_path), "utf8")).not.toContain('algorithm="rsa"')
     }
 
-    const rsaOnly = AOSP_KEYBOX.replace(/\s*<Key algorithm="ecdsa">[\s\S]*?<\/Key>/, "")
+    const rsaOnly = valid.replace(/\s*<Key algorithm="ecdsa">[\s\S]*?<\/Key>/, "")
     await expect(trickyStoreApi.keyboxImport(rsaOnly)).rejects.toMatchObject({
       code: "backend_rule",
     })
-    const path = "/data/misc/keystore/omk/keybox.xml"
-    expect(readFileSync(host.path(path), "utf8")).toContain('algorithm="ecdsa"')
-    expect(readFileSync(host.path(path), "utf8")).not.toContain('algorithm="rsa"')
+    const keyboxPath = "/data/misc/keystore/omk/keybox.xml"
+    expect(readFileSync(host.path(keyboxPath), "utf8")).toContain('algorithm="ecdsa"')
+    expect(readFileSync(host.path(keyboxPath), "utf8")).not.toContain('algorithm="rsa"')
   })
 
   it("downloads keyboxes the way providers and the repository hand them over", async () => {
-    server = await serve({
-      "/plain.xml": AOSP_KEYBOX,
-      "/encoded.txt": Buffer.from(AOSP_KEYBOX).toString("base64"),
-    })
     host = installHost({ ...backends["tricky-store"], ...packages })
+    const generated = await trickyStoreApi.keyboxGenerate()
+    const valid = readFileSync(host.path(generated.target_path), "utf8")
+    server = await serve({
+      "/plain.xml": valid,
+      "/encoded.txt": Buffer.from(valid).toString("base64"),
+    })
     expect((await trickyStoreApi.keyboxFetch(server.url("/plain.xml"))).source).toBe("url")
     const decoded = await trickyStoreApi.keyboxFetch(server.url("/encoded.txt"), "base64 -d")
     expect(decoded.summary.keyboxes).toBe(1)

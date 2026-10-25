@@ -55,8 +55,9 @@ if [ -f "$MODPATH/play-integrity/pif-engine" ]; then
   # Preserve existing choices; a fresh bundled engine must not conflict with standalone PIF.
   PIF_DATA="${PIF_ENGINE_DATA:-/data/adb/play-integrity}"
   if [ ! -e "$PIF_DATA/options.json" ]; then
-    [ ! -L "$PIF_DATA" ] && [ ! -L "$PIF_DATA/options.json" ] \
-      || abort "! Unsafe Play Integrity configuration path."
+    if [ -L "$PIF_DATA" ] || [ -L "$PIF_DATA/options.json" ]; then
+      abort "! Unsafe Play Integrity configuration path."
+    fi
     mkdir -p "$PIF_DATA" && chmod 0700 "$PIF_DATA" \
       || abort "! Cannot prepare Play Integrity configuration."
     PIF_TEMP="$PIF_DATA/.renewal-options-$$.tmp"

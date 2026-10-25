@@ -2,8 +2,27 @@ import type { MockModule } from "@/core/mock"
 import { MockFailure } from "@/core/mock"
 
 import type { DeviceStatus, Protocol, Provision } from "./api"
+import type { RenewalStatus } from "./renewal"
 
 const OUT = "/data/adb/duck-toolbox/var/outputs/rkp-device-1750000000000"
+const renewal: RenewalStatus = {
+  enabled: false,
+  protocol: "v2",
+  protocol_configured: false,
+  phase: "idle",
+  result: "disabled",
+  blocked: false,
+  pending: false,
+  target_supported: true,
+  certificate_valid: true,
+  expires_at: Date.now() + 7 * 86400000,
+  remaining_seconds: 7 * 86400,
+  last_check: 0,
+  last_success: 0,
+  retry_after: 0,
+  check_hours: 6,
+  lead_hours: 24,
+}
 
 function deviceStatus(): DeviceStatus {
   const status: DeviceStatus = {
@@ -106,6 +125,21 @@ function deviceStatus(): DeviceStatus {
 const mock: MockModule = {
   feature: { id: "rkp-device", contract: 6 },
   handlers: {
+    renewal: ([command, protocol]) => {
+      if (command === "protocol" || command === "enable") {
+        if (protocol !== "v2" && protocol !== "v1" && protocol !== "v1-native")
+          throw new MockFailure("protocol_required", "Choose a successful interface")
+        renewal.protocol = protocol
+        renewal.protocol_configured = true
+        if (command === "enable") renewal.enabled = true
+      } else if (command === "disable") renewal.enabled = false
+      else if (command === "check") {
+        renewal.last_check = Date.now()
+        renewal.result = "not_due"
+      } else if (command !== "status")
+        throw new MockFailure("usage_error", "Unknown renewal command")
+      return { ...renewal }
+    },
     "rkp-device.status": deviceStatus,
     "rkp-device.provision": (_args, flags) => {
       const protocol = flags.protocol ?? "auto"

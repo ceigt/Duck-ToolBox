@@ -21,6 +21,7 @@ public final class RegressionTest {
         RenewalTest.fixtures = Paths.get(args[0]).toAbsolutePath().normalize();
         RenewalTest.temporaryRoot = Paths.get(args[1]).toAbsolutePath().normalize();
         Files.createDirectories(RenewalTest.temporaryRoot);
+        String javaTool = Paths.get(System.getProperty("java.home"), "bin", System.getProperty("os.name").startsWith("Windows") ? "java.exe" : "java").toString();
         ManualKeybox.validate(Files.readAllBytes(RenewalTest.fixtures.resolve("aosp.xml")), 1735689600000L);
         check(true, "legacy AOSP key and certificate consistency");
         Path leaseRoot=RenewalTest.temporaryRoot.resolve("lease");
@@ -29,7 +30,14 @@ public final class RegressionTest {
         java.util.concurrent.CountDownLatch ready=new java.util.concurrent.CountDownLatch(1);
         java.util.concurrent.atomic.AtomicReference<Throwable> leaseError=new java.util.concurrent.atomic.AtomicReference<>();
         Thread lease=new Thread(() -> {try {ConfigLease.hold(leaseRoot,leaseInput,new OutputStream(){public void write(int b){} public void flush(){ready.countDown();}});}catch(Throwable error){leaseError.set(error);}});
-        lease.start(); check(ready.await(5,java.util.concurrent.TimeUnit.SECONDS),"config lease ready");
+        lease.setDaemon(true); lease.start(); check(ready.await(5,java.util.concurrent.TimeUnit.SECONDS),"config lease ready");
+        Process leaseProbe = new ProcessBuilder(javaTool, "-cp", System.getProperty("java.class.path"),
+                "dev.duck.renewal.LockProbe", leaseRoot.toString()).redirectErrorStream(true).start();
+        leaseProbe.getOutputStream().close();
+        if (!leaseProbe.waitFor(20, java.util.concurrent.TimeUnit.SECONDS)) { leaseProbe.destroyForcibly(); throw new AssertionError("lease probe timed out"); }
+        try (BufferedReader output = new BufferedReader(new InputStreamReader(leaseProbe.getInputStream(), StandardCharsets.UTF_8))) {
+            check(leaseProbe.exitValue() == 0 && "operation_busy".equals(output.readLine()), "separate config writer obeys renewal lock");
+        }
         try(FileChannel channel=FileChannel.open(leaseRoot.resolve("var/renewal/operation.lock"),StandardOpenOption.WRITE)) {
             try {channel.tryLock();throw new AssertionError("lease ignored");}catch(OverlappingFileLockException expected){check(true,"config lease shares renewal lock");}
         } finally {leaseOwner.close(); lease.join(5000);}
@@ -65,9 +73,6 @@ public final class RegressionTest {
         RenewalTest.Case manual = new RenewalTest.Case(); manual.enable(); String original=manual.hash();
         String xml=new String(RenewalTest.fixture("new.xml"),StandardCharsets.UTF_8);
         try (FileChannel channel=FileChannel.open(manual.root.resolve("operation.lock"),StandardOpenOption.WRITE); FileLock lock=channel.lock()) {
-            try { manual.engine.command("install",xml); throw new AssertionError("manual ignored renewal lock"); }
-            catch(IOException expected) { check("operation_busy".equals(expected.getMessage()), "manual uses renewal lock"); }
-            String javaTool = Paths.get(System.getProperty("java.home"), "bin", System.getProperty("os.name").startsWith("Windows") ? "java.exe" : "java").toString();
             Process child = new ProcessBuilder(javaTool, "-cp", System.getProperty("java.class.path"),
                     "dev.duck.renewal.LockProbe", manual.root.toString(), manual.outputs.toString(),
                     manual.target.toString(), RenewalTest.fixtures.toString()).redirectErrorStream(true).start();
@@ -75,6 +80,9 @@ public final class RegressionTest {
             try (BufferedReader output = new BufferedReader(new InputStreamReader(child.getInputStream(), StandardCharsets.UTF_8))) {
                 check(child.exitValue() == 0 && "operation_busy".equals(output.readLine()), "separate installer process obeys renewal lock");
             }
+            // POSIX closes can release this JVM's OS locks; probe the other process first.
+            try { manual.engine.command("install",xml); throw new AssertionError("manual ignored renewal lock"); }
+            catch(IOException expected) { check("operation_busy".equals(expected.getMessage()), "manual uses renewal lock"); }
         }
         try { manual.engine.command("install","<AndroidAttestation>bad</AndroidAttestation>"); throw new AssertionError("bad input accepted"); }
         catch(Exception expected) { check(manual.hash().equals(original), "invalid manual keybox leaves current file intact"); }
