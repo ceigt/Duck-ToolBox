@@ -75,7 +75,11 @@ pub fn install(ctx: &Context, content: &str, source: &str) -> Result<KeyboxInsta
     let device_path = adapter.keybox_path(&ctx.sysroot);
     let host_path = ctx.sysroot.path(&device_path);
     let existed = host_path.is_file();
-    let backup = if detection.backend == Backend::TeeSimulator && cfg!(target_os = "android") {
+    // Android fixture sysroots must never enter the real device's Java transaction.
+    let transactional = detection.backend == Backend::TeeSimulator
+        && cfg!(target_os = "android")
+        && ctx.sysroot.root() == std::path::Path::new("/");
+    let backup = if transactional {
         transaction::install(ctx, &device_path, &cleaned)?
     } else {
         let backup = if existed {
@@ -100,7 +104,7 @@ pub fn install(ctx: &Context, content: &str, source: &str) -> Result<KeyboxInsta
         backend: detection.backend,
         target_path: device_path,
         backup_path: backup.map(|path| ctx.sysroot.display_path(&path)),
-        load_confirmed: detection.backend == Backend::TeeSimulator && cfg!(target_os = "android"),
+        load_confirmed: transactional,
         size: cleaned.len() as u64,
         source: source.to_owned(),
         summary,
@@ -163,8 +167,31 @@ fn set_mode(_path: &std::path::Path, _mode: u32) {}
 
 #[cfg(test)]
 mod tests {
-    use super::{AOSP_KEYBOX, check_backend_rules, validate};
+    use super::{AOSP_KEYBOX, check_backend_rules, generate, install, validate};
     use crate::model::Backend;
+    use duck_core::{AppPaths, Context, Sysroot};
+    use std::fs;
+
+    #[test]
+    fn fixture_teesim_install_stays_inside_its_sysroot() {
+        let fixture = tempfile::tempdir().unwrap();
+        let sysroot = fixture.path().join("sysroot");
+        let module = sysroot.join("data/adb/modules/teesim");
+        fs::create_dir_all(&module).unwrap();
+        fs::write(module.join("module.prop"), "id=teesim\nversionCode=75\n").unwrap();
+        let ctx = Context {
+            paths: AppPaths::for_root(fixture.path(), &fixture.path().join("runtime")),
+            sysroot: Sysroot::new(&sysroot),
+        };
+        let xml = generate::unknown_keybox().unwrap();
+        let result = install(&ctx, &xml, "test").unwrap();
+        assert!(!result.load_confirmed);
+        assert_eq!(result.target_path, "/data/adb/teesim/keybox.xml");
+        assert_eq!(
+            fs::read_to_string(ctx.sysroot.path(&result.target_path)).unwrap(),
+            validate::clean(&xml).unwrap()
+        );
+    }
 
     #[test]
     fn aosp_keybox_is_accepted_by_every_backend() {
