@@ -65,7 +65,9 @@
     "repoTitle": "Keybox-Repository",
     "omkCompatibilityTitle": "OMK-Keybox-Kompatibilität",
     "omkCompatibilityDescription": "Ältere OMK-Versionen benötigen EC und RSA in der Keybox. Dateien nur mit EC, etwa RKP-Exporte, benötigen die Unterstützung aus Commit b12557c; fehlt RSA, wird die mitgelieferte AOSP-RSA-Kette verwendet. Die Unterstützung der installierten Version lässt sich nicht automatisch prüfen. Installation fortsetzen?",
-    "continueInstall": "Installation fortsetzen"
+    "continueInstall": "Installation fortsetzen",
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
   },
   "policy": {
     "none": "Das aktive Modul hat keine Standardrichtlinie.",

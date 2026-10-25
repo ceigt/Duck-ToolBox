@@ -52,7 +52,7 @@ pub async fn fetch_bytes(url: &str, max_bytes: usize) -> Result<Vec<u8>> {
     if !is_web_url(url) {
         bail!("not an http(s) URL: {url}");
     }
-    let response = http_client()?
+    let mut response = http_client()?
         .get(url)
         .send()
         .await
@@ -67,14 +67,18 @@ pub async fn fetch_bytes(url: &str, max_bytes: usize) -> Result<Vec<u8>> {
     {
         bail!("{url} is larger than {max_bytes} bytes");
     }
-    let body = response
-        .bytes()
+    let mut body = Vec::new();
+    while let Some(chunk) = response
+        .chunk()
         .await
-        .with_context(|| format!("read {url}"))?;
-    if body.len() > max_bytes {
-        bail!("{url} is larger than {max_bytes} bytes");
+        .with_context(|| format!("read {url}"))?
+    {
+        if chunk.len() > max_bytes.saturating_sub(body.len()) {
+            bail!("{url} is larger than {max_bytes} bytes");
+        }
+        body.extend_from_slice(&chunk);
     }
-    Ok(body.to_vec())
+    Ok(body)
 }
 
 pub async fn fetch_text(url: &str, max_bytes: usize) -> Result<String> {
@@ -98,6 +102,26 @@ pub async fn fetch_text_first(urls: &[String], max_bytes: usize) -> Result<(Stri
 #[cfg(test)]
 mod tests {
     use super::{embedded_rustls_config, is_web_url};
+
+    #[tokio::test]
+    async fn chunked_body_without_content_length_stops_at_limit() {
+        use std::{
+            io::{Read, Write},
+            net::TcpListener,
+            thread,
+        };
+        let server = TcpListener::bind("127.0.0.1:0").unwrap();
+        let url = format!("http://{}/large", server.local_addr().unwrap());
+        let worker = thread::spawn(move || {
+            let (mut socket, _) = server.accept().unwrap();
+            let mut request = [0; 4096];
+            let _ = socket.read(&mut request);
+            let _ = socket.write_all(b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\nConnection: close\r\n\r\n8\r\n12345678\r\n8\r\nABCDEFGH\r\n0\r\n\r\n");
+        });
+        let error = super::fetch_bytes(&url, 10).await.unwrap_err();
+        assert!(error.to_string().contains("larger than 10"));
+        worker.join().unwrap();
+    }
 
     #[test]
     fn embedded_config_offers_h2_and_http11() {

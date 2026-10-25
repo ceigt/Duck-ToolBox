@@ -1,11 +1,12 @@
 import { readdirSync, readFileSync } from "node:fs"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 
 import { describe, expect, it } from "vitest"
 
 type Messages = Record<string, unknown>
 
-const root = path.dirname(new URL(import.meta.url).pathname)
+const root = path.dirname(fileURLToPath(import.meta.url))
 /** Translated in full. Tricky Addon's `ta` group follows upstream, so it is not counted. */
 const complete = ["zh-TW", "ja", "ko", "es-ES", "fr", "de", "it", "pt-BR", "ru", "ar", "vi", "id"]
 const directories = [

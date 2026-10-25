@@ -383,7 +383,7 @@ fn write_secret(path: &Path, bytes: &[u8]) -> Result<()> {
     fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     // NamedTempFile creates a fresh 0600 file, even with a permissive caller umask or
     // an existing destination whose permissions are too broad. Persist replaces the
-    // destination atomically without following a destination symlink.
+    // destination only if it does not exist; installs must use the transactional installer.
     let mut file = tempfile::NamedTempFile::new_in(parent)
         .with_context(|| format!("create a temporary file under {}", parent.display()))?;
     file.write_all(bytes)
@@ -391,7 +391,7 @@ fn write_secret(path: &Path, bytes: &[u8]) -> Result<()> {
     file.as_file()
         .sync_all()
         .with_context(|| format!("sync {}", path.display()))?;
-    file.persist(path)
+    file.persist_noclobber(path)
         .map_err(|error| error.error)
         .with_context(|| format!("write {}", path.display()))?;
     Ok(())

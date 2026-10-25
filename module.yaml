@@ -1,14 +1,14 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/KernelSU-Modules/tools/main/schemas/module.schema.json
 schemaVersion: 1
 id: duck-toolbox
-name: Duck ToolBox
+name: Duck ToolBox (RKP Renewal)
 summary: >-
-  Android attestation toolbox with a Tricky Store, TEESimulator and OhMyKeymint
-  manager, RKP workbench and Qualcomm device ID provisioning in one WebUI.
+  Fork of v0.2.0-Stable with opt-in RKP renewal for TEESimulator.
+  Original authors credited below; this local build is not an upstream release.
 description: README.md
 license: MIT
-homepage: https://github.com/eltavine/Duck-ToolBox
-support: https://github.com/eltavine/Duck-ToolBox/issues
+homepage: https://github.com/ceigt/Duck-ToolBox
+support: https://github.com/ceigt/Duck-ToolBox/issues
 tags: [system, tools, attestation]
 metamodule: false
 

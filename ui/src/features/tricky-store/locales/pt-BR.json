@@ -65,7 +65,9 @@
     "repoTitle": "Repositório de keyboxes",
     "omkCompatibilityTitle": "Compatibilidade do keybox com OMK",
     "omkCompatibilityDescription": "Versões antigas do OMK exigem EC e RSA no keybox. Arquivos apenas EC, como exportações RKP, precisam do suporte do commit b12557c; sem RSA, é usada a cadeia RSA AOSP incluída. Não é possível verificar automaticamente o suporte da versão instalada. Continuar a instalação?",
-    "continueInstall": "Continuar instalação"
+    "continueInstall": "Continuar instalação",
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
   },
   "policy": {
     "none": "O módulo ativo não tem política padrão.",

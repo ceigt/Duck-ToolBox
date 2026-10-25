@@ -1,7 +1,6 @@
 id=duck-toolbox
-name=Duck ToolBox
-version=0.2.0-Stable
-versionCode=115
+name=Duck ToolBox (RKP Renewal)
+version=0.2.0-renewal.1
+versionCode=116
 author=Eltavine & KOW & MhmRdd
-description=Android attestation toolbox: Tricky Store / TEESimulator / OhMyKeymint manager (a full Tricky Addon port), RKP workbench and device ID provisioning (Qualcomm / MediaTek TrustKernel), in one WebUI.
-updateJson=https://raw.githubusercontent.com/eltavine/Duck-ToolBox/main/update.json
+description=Fork of v0.2.0-Stable with opt-in RKP renewal for TEESimulator; includes the upstream independent GPLv3 Play Integrity engine (disabled on first install).

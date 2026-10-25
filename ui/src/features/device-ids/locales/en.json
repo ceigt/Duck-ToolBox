@@ -27,7 +27,9 @@
     "provision": "Provision device IDs",
     "provisionDry": "Run dry run",
     "confirm": "Write these IDs into Keymaster now? This cannot be undone from Duck ToolBox.",
-    "trustkernelHint": "TrustKernel provisioning is experimental. It writes rkp_flag and attestation_ids separately; a failure can leave a partial write. Verification checks object existence. MEID and QSEECom TA locations do not apply."
+    "trustkernelHint": "TrustKernel provisioning is experimental. It writes rkp_flag and attestation_ids separately; a failure can leave a partial write. Verification checks object existence. MEID and QSEECom TA locations do not apply.",
+    "identityReview": "Attestation-specific properties take priority. Review conflicting values and edit the fields above before confirming.",
+    "identityReviewed": "I reviewed and selected the identity values to write"
   },
   "result": {
     "title": "Result",
@@ -44,7 +46,8 @@
     "verification": "Verification",
     "existenceOnly": "Object existence only",
     "taAcknowledgement": "TA acknowledgement",
-    "omitted": "Not written"
+    "omitted": "Not written",
+    "reportFailed": "Operation completed, but report saving failed. Do not repeat provisioning for this reason."
   },
   "errors": {
     "missing_device_field": "A required identifier is empty."

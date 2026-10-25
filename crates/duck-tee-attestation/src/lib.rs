@@ -10,6 +10,9 @@ mod seed;
 mod xml;
 
 pub use cli::FEATURE;
+pub use keybox::validate_install;
 
 #[cfg(test)]
 mod tests;
+
+mod legacy_rsa;

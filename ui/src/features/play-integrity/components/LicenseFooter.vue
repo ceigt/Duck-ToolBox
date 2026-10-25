@@ -8,7 +8,7 @@ const { t } = useIntegrityI18n()
 const show = ref(false)
 // CI embeds the immutable Git commit used to build the engine and the WebUI.
 const sourceCommit = import.meta.env.VITE_PIF_SOURCE_COMMIT || "main"
-const sourceUrl = `https://github.com/eltavine/Duck-ToolBox/tree/${sourceCommit}/components/play-integrity`
+const sourceUrl = `https://github.com/ceigt/Duck-ToolBox/tree/${sourceCommit}/components/play-integrity`
 </script>
 <template>
   <footer class="text-muted-foreground border-t px-4 py-5 text-center text-xs leading-6">

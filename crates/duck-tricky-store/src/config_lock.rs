@@ -2,7 +2,7 @@
 use anyhow::{Context as _, Result};
 use duck_core::Context;
 
-pub(crate) struct ConfigLock(std::fs::File);
+pub(crate) struct ConfigLock(std::fs::File, Option<crate::renewal_lock::RenewalLease>);
 
 impl Drop for ConfigLock {
     fn drop(&mut self) {
@@ -13,6 +13,12 @@ impl Drop for ConfigLock {
 }
 
 pub(crate) fn acquire(ctx: &Context) -> Result<ConfigLock> {
+    let mut guard = acquire_native(ctx)?;
+    guard.1 = crate::renewal_lock::acquire(ctx)?;
+    Ok(guard)
+}
+
+pub(crate) fn acquire_native(ctx: &Context) -> Result<ConfigLock> {
     std::fs::create_dir_all(&ctx.paths.var_dir)?;
     let file = std::fs::OpenOptions::new()
         .create(true)
@@ -22,7 +28,7 @@ pub(crate) fn acquire(ctx: &Context) -> Result<ConfigLock> {
         .open(ctx.paths.var_dir.join("tricky-store-config.lock"))?;
     file.try_lock()
         .context("keystore configuration is busy; retry after the current operation")?;
-    Ok(ConfigLock(file))
+    Ok(ConfigLock(file, None))
 }
 
 #[cfg(test)]

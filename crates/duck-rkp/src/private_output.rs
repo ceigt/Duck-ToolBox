@@ -65,10 +65,12 @@ fn same_file(_file: &fs::File, _path: &Path) -> bool {
 #[cfg(test)]
 mod tests {
     use super::write_new_verified;
+    #[cfg(unix)]
     use anyhow::ensure;
     use std::{cell::Cell, fs};
 
     #[test]
+    #[cfg(unix)]
     fn writes_private_output_after_two_readback_checks_without_overwriting() {
         use std::os::unix::fs::PermissionsExt as _;
         let root = tempfile::tempdir().unwrap();
@@ -90,6 +92,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(unix)]
     fn failed_validation_removes_only_the_new_output() {
         let root = tempfile::tempdir().unwrap();
         let path = root.path().join("keybox.xml");
@@ -105,6 +108,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(unix)]
     fn creates_private_parents_and_never_follows_destination_symlinks() {
         use std::os::unix::fs::{PermissionsExt as _, symlink};
         let root = tempfile::tempdir().unwrap();

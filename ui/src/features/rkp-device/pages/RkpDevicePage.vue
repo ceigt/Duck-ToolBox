@@ -29,6 +29,7 @@ import { notifySuccess } from "@/core/notify"
 import type { Protocol, Provision } from "../api"
 import { rkpDeviceApi } from "../api"
 import { useRkpDeviceI18n } from "../i18n"
+import RenewalPanel from "./RenewalPanel.vue"
 
 interface Row {
   label: string
@@ -282,6 +283,8 @@ const resultRows = computed<Row[]>(() => {
         </p>
       </template>
     </QueryState>
+
+    <RenewalPanel />
 
     <template v-if="result">
       <SectionCard :title="t('run.title')">

@@ -27,5 +27,9 @@
     "security_patch_invalid_all": "Invalid format",
     "add_system_app_title": "Magdagdag ng System App",
     "customkb_remove_title": "Підтвердити видалення?"
+  },
+  "keybox": {
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
   }
 }

@@ -27,5 +27,9 @@
     "security_patch_invalid_all": "Yanlış format",
     "add_system_app_title": "Sistem Tətbiqi Əlavə et",
     "customkb_remove_title": "Çıxarılmanı Təsdiqlə"
+  },
+  "keybox": {
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
   }
 }

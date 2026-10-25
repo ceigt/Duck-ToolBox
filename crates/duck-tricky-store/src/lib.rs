@@ -20,6 +20,7 @@ pub mod patch;
 mod policy;
 pub mod props;
 pub mod providers;
+mod renewal_lock;
 mod service;
 pub mod state;
 mod targets;

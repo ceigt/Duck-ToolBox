@@ -34,7 +34,7 @@ pub(crate) fn profile(
             .unwrap_or("")
             .to_owned()
     };
-    DeviceIdsProfile {
+    let mut profile = DeviceIdsProfile {
         brand: first(&["ro.product.brand", "ro.product.vendor.brand"]),
         device: first(&["ro.product.device", "ro.product.vendor.device"]),
         product: first(&["ro.product.name", "ro.product.vendor.name"]),
@@ -79,5 +79,61 @@ pub(crate) fn profile(
             default_ta_path()
         },
         dry_run: false,
+        ..DeviceIdsProfile::default()
+    };
+    for (field, property, target) in [
+        ("brand", "brand", &mut profile.brand),
+        ("device", "device", &mut profile.device),
+        ("product", "name", &mut profile.product),
+        ("manufacturer", "manufacturer", &mut profile.manufacturer),
+        ("model", "model", &mut profile.model),
+    ] {
+        let candidates = [
+            format!("ro.product.{property}_for_attestation"),
+            format!("ro.product.{property}"),
+            format!("ro.product.vendor.{property}"),
+        ];
+        let values = candidates
+            .iter()
+            .filter_map(|key| {
+                properties
+                    .get(key)
+                    .filter(|v| !v.trim().is_empty())
+                    .map(|v| (key.clone(), v.trim().to_owned()))
+            })
+            .collect::<Vec<_>>();
+        if let Some((property, value)) = values.first() {
+            *target = value.clone();
+            profile.identity_sources.insert(
+                field.into(),
+                crate::IdentitySource {
+                    property: property.clone(),
+                    value: value.clone(),
+                    alternatives: values
+                        .iter()
+                        .skip(1)
+                        .filter(|(_, v)| v != value)
+                        .cloned()
+                        .collect(),
+                },
+            );
+        }
+    }
+    profile
+}
+
+#[cfg(test)]
+mod renewal_tests {
+    use super::*;
+    #[test]
+    fn identity_prefers_provisioned_values_and_keeps_conflicts() {
+        let properties = BTreeMap::from([
+            ("ro.product.name".into(), "OP5CF9L1".into()),
+            ("ro.product.name_for_attestation".into(), "PJE110".into()),
+        ]);
+        let p = profile(&properties, Some(Backend::Qseecom));
+        assert_eq!(p.product, "PJE110");
+        assert_eq!(p.identity_sources["product"].alternatives.len(), 1);
+        assert!(!p.identity_reviewed);
     }
 }

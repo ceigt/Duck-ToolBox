@@ -82,5 +82,9 @@
     "mode_leaf_hack": "Podmiana certyfikatu",
     "mode_set_custom_policy": "Ustaw niestandardową regułę",
     "mode_use_default_policy": "Użyj domyślnej reguły"
+  },
+  "keybox": {
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
   }
 }

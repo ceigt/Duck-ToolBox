@@ -65,7 +65,9 @@
     "repoTitle": "Repositori keybox",
     "omkCompatibilityTitle": "Kompatibilitas keybox OMK",
     "omkCompatibilityDescription": "Build OMK lama memerlukan EC dan RSA dalam keybox. Berkas khusus EC, termasuk ekspor RKP, memerlukan dukungan dari commit b12557c; jika RSA tidak ada, rantai RSA AOSP bawaan digunakan. Dukungan build yang terpasang tidak dapat diverifikasi otomatis. Lanjutkan pemasangan?",
-    "continueInstall": "Lanjutkan pemasangan"
+    "continueInstall": "Lanjutkan pemasangan",
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
   },
   "policy": {
     "none": "Modul yang aktif tidak memiliki kebijakan default.",

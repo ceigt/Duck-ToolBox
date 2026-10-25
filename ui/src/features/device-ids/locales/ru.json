@@ -27,7 +27,9 @@
     "provision": "Записать ID устройства",
     "provisionDry": "Выполнить пробный запуск",
     "confirm": "Записать эти ID в Keymaster сейчас? Duck ToolBox не сможет отменить это действие.",
-    "trustkernelHint": "Поддержка TrustKernel экспериментальная. rkp_flag и attestation_ids записываются отдельно; при ошибке запись может быть частичной. Проверяется только наличие объектов. MEID и пути TA QSEECom не применяются."
+    "trustkernelHint": "Поддержка TrustKernel экспериментальная. rkp_flag и attestation_ids записываются отдельно; при ошибке запись может быть частичной. Проверяется только наличие объектов. MEID и пути TA QSEECom не применяются.",
+    "identityReview": "Attestation-specific properties take priority. Review conflicting values and edit the fields above before confirming.",
+    "identityReviewed": "I reviewed and selected the identity values to write"
   },
   "result": {
     "title": "Результат",
@@ -44,7 +46,8 @@
     "verification": "Проверка",
     "existenceOnly": "Только наличие объектов",
     "taAcknowledgement": "Подтверждение TA",
-    "omitted": "Не записаны"
+    "omitted": "Не записаны",
+    "reportFailed": "Operation completed, but report saving failed. Do not repeat provisioning for this reason."
   },
   "errors": {
     "missing_device_field": "Не заполнен обязательный идентификатор."

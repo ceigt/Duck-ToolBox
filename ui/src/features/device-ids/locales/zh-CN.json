@@ -27,7 +27,9 @@
     "provision": "写入设备标识",
     "provisionDry": "开始试运行",
     "confirm": "现在把这些标识写入 Keymaster 吗？Duck ToolBox 无法撤销此操作。",
-    "trustkernelHint": "TrustKernel 写入属于实验性支持。rkp_flag 与 attestation_ids 分别写入，失败时可能已完成部分写入；验证仅检查对象是否存在。MEID 和 QSEECom TA 位置不适用。"
+    "trustkernelHint": "TrustKernel 写入属于实验性支持。rkp_flag 与 attestation_ids 分别写入，失败时可能已完成部分写入；验证仅检查对象是否存在。MEID 和 QSEECom TA 位置不适用。",
+    "identityReview": "已优先选用证明专用属性；如有差异，请编辑上方字段并确认来源。",
+    "identityReviewed": "我已核对并选择要写入的身份值"
   },
   "result": {
     "title": "结果",
@@ -44,7 +46,8 @@
     "verification": "验证范围",
     "existenceOnly": "仅验证对象存在",
     "taAcknowledgement": "TA 确认成功",
-    "omitted": "未写入"
+    "omitted": "未写入",
+    "reportFailed": "操作已完成，但报告保存失败；不要因此重复写入。"
   },
   "errors": {
     "missing_device_field": "有必填的标识为空。"

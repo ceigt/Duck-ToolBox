@@ -44,6 +44,10 @@ def check_source_checkout(commit, root=ROOT):
 def validate():
     require(MODULE / "webroot/index.html")
     require(MODULE / "play-integrity/build.json")
+    require(MODULE / "bin/duck-renewal.dex")
+    version = next(line.split("=",1)[1] for line in (MODULE/"module.prop").read_text().splitlines() if line.startswith("version="))
+    if not (MODULE/"bin/duck-renewal.dex").read_bytes().startswith(b"dex\n") or version.encode() not in (MODULE/"bin/duck-renewal.dex").read_bytes() or version.encode() not in (MODULE/"bin/duckd").read_bytes():
+        raise ValueError("Rebuild renewal DEX and native backend for the module version")
     manifest = json.loads((MODULE / "play-integrity/build.json").read_text())
     upstream = json.loads((ROOT / "components/play-integrity/UPSTREAM.json").read_text())
     if manifest["upstream_revision"] != upstream["revision"]:
@@ -64,7 +68,7 @@ def validate():
         require(MODULE / "licenses/play-integrity" / name)
     check_source_checkout(manifest.get("source_commit"))
     source_url = (
-        "https://github.com/eltavine/Duck-ToolBox/tree/"
+        "https://github.com/ceigt/Duck-ToolBox/tree/"
         + manifest["source_commit"] + "/components/play-integrity"
     )
     source_notice = MODULE / "licenses/play-integrity/SOURCE.txt"
@@ -99,6 +103,7 @@ def main():
         if binary_path.exists():
             binary_path.chmod(0o755)
     validate()
+    shutil.copy2(ROOT / "renewal/README.txt", MODULE / "LOCAL-RENEWAL.txt")
     if args.validate_only:
         return
     version = next(line.split("=", 1)[1] for line in (MODULE / "module.prop").read_text().splitlines() if line.startswith("version="))

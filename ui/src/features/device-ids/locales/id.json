@@ -27,7 +27,9 @@
     "provision": "Tulis ID perangkat",
     "provisionDry": "Jalankan simulasi",
     "confirm": "Tulis ID ini ke Keymaster sekarang? Tindakan ini tidak dapat diurungkan dari Duck ToolBox.",
-    "trustkernelHint": "Dukungan TrustKernel bersifat eksperimental. rkp_flag dan attestation_ids ditulis terpisah; kegagalan dapat menyisakan penulisan parsial. Verifikasi hanya memeriksa keberadaan objek. MEID dan lokasi TA QSEECom tidak berlaku."
+    "trustkernelHint": "Dukungan TrustKernel bersifat eksperimental. rkp_flag dan attestation_ids ditulis terpisah; kegagalan dapat menyisakan penulisan parsial. Verifikasi hanya memeriksa keberadaan objek. MEID dan lokasi TA QSEECom tidak berlaku.",
+    "identityReview": "Attestation-specific properties take priority. Review conflicting values and edit the fields above before confirming.",
+    "identityReviewed": "I reviewed and selected the identity values to write"
   },
   "result": {
     "title": "Hasil",
@@ -44,7 +46,8 @@
     "verification": "Cakupan verifikasi",
     "existenceOnly": "Hanya keberadaan objek",
     "taAcknowledgement": "Konfirmasi keberhasilan TA",
-    "omitted": "Tidak ditulis"
+    "omitted": "Tidak ditulis",
+    "reportFailed": "Operation completed, but report saving failed. Do not repeat provisioning for this reason."
   },
   "errors": {
     "missing_device_field": "Ada pengenal wajib yang kosong."

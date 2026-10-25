@@ -52,6 +52,21 @@ repair_runtime
 normalize_boot_hash
 
 if [ -f "$MODPATH/play-integrity/pif-engine" ]; then
+  # Preserve existing choices; a fresh bundled engine must not conflict with standalone PIF.
+  PIF_DATA="${PIF_ENGINE_DATA:-/data/adb/play-integrity}"
+  if [ ! -e "$PIF_DATA/options.json" ]; then
+    [ ! -L "$PIF_DATA" ] && [ ! -L "$PIF_DATA/options.json" ] \
+      || abort "! Unsafe Play Integrity configuration path."
+    mkdir -p "$PIF_DATA" && chmod 0700 "$PIF_DATA" \
+      || abort "! Cannot prepare Play Integrity configuration."
+    PIF_TEMP="$PIF_DATA/.renewal-options-$$.tmp"
+    (set -C; printf '%s\n' '{"enabled":false}' > "$PIF_TEMP") \
+      || abort "! Cannot stage Play Integrity defaults."
+    # Hard-link installation never overwrites a setting created concurrently.
+    ln "$PIF_TEMP" "$PIF_DATA/options.json" 2>/dev/null || [ -f "$PIF_DATA/options.json" ] \
+      || abort "! Cannot install Play Integrity defaults."
+    rm -f "$PIF_TEMP"
+  fi
   chmod 0755 "$MODPATH/play-integrity/pif-engine"
   PIF_ENGINE_MODULE="$MODPATH/play-integrity" \
     "$MODPATH/play-integrity/pif-engine" stage setup >/dev/null 2>&1 \

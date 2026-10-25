@@ -3,6 +3,8 @@ use thiserror::Error;
 
 #[derive(Debug, Error, Serialize, Deserialize)]
 pub(crate) enum DeviceRkpError {
+    #[error("another issuance operation is running; no certificate request was submitted")]
+    OperationBusy,
     #[error(
         "only some devices support this feature and only RKP certificates can be issued; pass --acknowledge-limitations to continue"
     )]
@@ -29,6 +31,7 @@ pub(crate) fn code_of(error: &anyhow::Error) -> &'static str {
     for cause in error.chain() {
         if let Some(error) = cause.downcast_ref::<DeviceRkpError>() {
             return match error {
+                DeviceRkpError::OperationBusy => "operation_busy",
                 DeviceRkpError::AcknowledgementRequired => "acknowledgement_required",
                 DeviceRkpError::UnsupportedDevice(_) => "unsupported_device",
                 DeviceRkpError::Timeout => "ta_timeout",

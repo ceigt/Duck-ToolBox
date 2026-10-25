@@ -74,7 +74,7 @@ pub async fn fetch_eek(
         .body(payload)
         .send()
         .await
-        .context("send fetchEekChain request")?;
+        .map_err(|_| RkpError::ChallengeUnavailable)?;
 
     let status = response.status();
     let body = read_body(response, false).await?;
@@ -411,3 +411,22 @@ fn invalid_rkp_response<T>(result: Result<T>) -> Result<T> {
 mod tests;
 #[cfg(test)]
 mod transport_tests;
+
+#[cfg(test)]
+mod challenge_regression {
+    #[tokio::test]
+    async fn real_fetch_eek_connect_failure_is_retryable_but_submission_is_unknown() {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let endpoint = format!("http://{}", listener.local_addr().unwrap());
+        drop(listener);
+        let client = super::rkp_client().unwrap();
+        let challenge = super::fetch_eek(&client, "test", &endpoint)
+            .await
+            .unwrap_err();
+        assert_eq!(crate::error::code_of(&challenge), "challenge_unavailable");
+        let submission = super::submit_csr(&client, &[1], &[2], &endpoint)
+            .await
+            .unwrap_err();
+        assert_eq!(crate::error::code_of(&submission), "submission_unknown");
+    }
+}

@@ -27,7 +27,9 @@
     "provision": "Ghi ID thiết bị",
     "provisionDry": "Bắt đầu chạy thử",
     "confirm": "Ghi các ID này vào Keymaster ngay bây giờ? Duck ToolBox không thể hoàn tác thao tác này.",
-    "trustkernelHint": "TrustKernel đang ở mức thử nghiệm. rkp_flag và attestation_ids được ghi riêng; lỗi có thể để lại dữ liệu ghi một phần. Việc kiểm tra chỉ xác nhận đối tượng tồn tại. MEID và đường dẫn TA của QSEECom không áp dụng."
+    "trustkernelHint": "TrustKernel đang ở mức thử nghiệm. rkp_flag và attestation_ids được ghi riêng; lỗi có thể để lại dữ liệu ghi một phần. Việc kiểm tra chỉ xác nhận đối tượng tồn tại. MEID và đường dẫn TA của QSEECom không áp dụng.",
+    "identityReview": "Attestation-specific properties take priority. Review conflicting values and edit the fields above before confirming.",
+    "identityReviewed": "I reviewed and selected the identity values to write"
   },
   "result": {
     "title": "Kết quả",
@@ -44,7 +46,8 @@
     "verification": "Phạm vi kiểm tra",
     "existenceOnly": "Chỉ kiểm tra đối tượng tồn tại",
     "taAcknowledgement": "TA xác nhận thành công",
-    "omitted": "Chưa ghi"
+    "omitted": "Chưa ghi",
+    "reportFailed": "Operation completed, but report saving failed. Do not repeat provisioning for this reason."
   },
   "errors": {
     "missing_device_field": "Có mã nhận dạng bắt buộc bị bỏ trống."

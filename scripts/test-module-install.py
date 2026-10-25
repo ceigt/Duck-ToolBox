@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check installer platform/API guards before any runtime preparation."""
 import os
+import json
 from pathlib import Path
 import shutil
 import subprocess
@@ -11,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class InstallGuards(unittest.TestCase):
-    def install(self, architecture, api):
+    def install(self, architecture, api, engine=False, options=None):
         with tempfile.TemporaryDirectory(prefix="duck-install-guard-") as directory:
             root = Path(directory)
             shutil.copy2(ROOT / "module/customize.sh", root / "customize.sh")
@@ -21,6 +22,13 @@ repair_runtime() { mkdir -p "$TEST_RUNTIME"; touch "$TEST_RUNTIME/prepared"; }
 normalize_boot_hash() { :; }
 ''')
             runtime = root / "runtime"
+            engine_data = root / "pif-data"
+            if engine:
+                (root / "play-integrity").mkdir()
+                (root / "play-integrity/pif-engine").write_text("#!/bin/sh\nexit 0\n")
+            if options is not None:
+                engine_data.mkdir()
+                (engine_data / "options.json").write_text(json.dumps(options))
             result = subprocess.run(["sh", "-c", '''
 ui_print() { printf '%s\\n' "$*"; }
 abort() { printf '%s\\n' "$*"; exit 1; }
@@ -28,8 +36,22 @@ abort() { printf '%s\\n' "$*"; exit 1; }
 '''], capture_output=True, text=True, timeout=10, env={
                 **os.environ, "ARCH": architecture, "API": str(api), "KSU": "true",
                 "APATCH": "false", "MODPATH": str(root), "TEST_RUNTIME": str(runtime),
+                "PIF_ENGINE_DATA": str(engine_data),
             })
+            saved = engine_data / "options.json"
+            self.saved_options = json.loads(saved.read_text()) if saved.exists() else None
             return result, (runtime / "prepared").exists()
+
+    def test_fresh_bundled_engine_is_disabled(self):
+        result, _ = self.install("arm64", 26, engine=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.saved_options, {"enabled": False})
+
+    def test_existing_bundled_engine_choice_is_preserved(self):
+        options = {"enabled": True, "spoofProps": True}
+        result, _ = self.install("arm64", 26, engine=True, options=options)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.saved_options, options)
 
     def test_supported_arm64_prepares_runtime(self):
         result, prepared = self.install("arm64", 26)

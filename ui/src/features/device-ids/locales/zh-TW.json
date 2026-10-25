@@ -27,7 +27,9 @@
     "provision": "寫入裝置 ID",
     "provisionDry": "開始模擬執行",
     "confirm": "要立即將這些 ID 寫入 Keymaster 嗎？此操作無法在 Duck ToolBox 中復原。",
-    "trustkernelHint": "TrustKernel 寫入屬於實驗性支援。rkp_flag 與 attestation_ids 分別寫入，失敗時可能已完成部分寫入；驗證僅檢查物件是否存在。MEID 與 QSEECom TA 位置不適用。"
+    "trustkernelHint": "TrustKernel 寫入屬於實驗性支援。rkp_flag 與 attestation_ids 分別寫入，失敗時可能已完成部分寫入；驗證僅檢查物件是否存在。MEID 與 QSEECom TA 位置不適用。",
+    "identityReview": "Attestation-specific properties take priority. Review conflicting values and edit the fields above before confirming.",
+    "identityReviewed": "I reviewed and selected the identity values to write"
   },
   "result": {
     "title": "結果",
@@ -44,7 +46,8 @@
     "verification": "驗證範圍",
     "existenceOnly": "僅驗證物件存在",
     "taAcknowledgement": "TA 確認成功",
-    "omitted": "未寫入"
+    "omitted": "未寫入",
+    "reportFailed": "Operation completed, but report saving failed. Do not repeat provisioning for this reason."
   },
   "errors": {
     "missing_device_field": "有必填的識別碼未填寫。"

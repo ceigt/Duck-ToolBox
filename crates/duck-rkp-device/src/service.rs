@@ -10,7 +10,8 @@ use std::path::PathBuf;
 use anyhow::Result;
 use duck_core::BoxFuture;
 use duck_core::{AppPaths, Context};
-use duck_platform::net::{http_client, is_web_url};
+use duck_platform::net::is_web_url;
+use duck_rkp::http::rkp_client;
 use duck_rkp::{
     cose::{EcKeyPair, generate_ec_keypair},
     error::RkpError,
@@ -114,7 +115,7 @@ impl Google {
             return Err(RkpError::InvalidServerUrl(server_url).into());
         }
         Ok(Self {
-            client: http_client()?,
+            client: rkp_client()?,
             server_url,
         })
     }
@@ -169,6 +170,18 @@ pub(crate) async fn provision(
     if !acknowledged {
         return Err(DeviceRkpError::AcknowledgementRequired.into());
     }
+
+    // Both manual and scheduled issuance enter here. The guard lasts through export.
+    let lock_dir = ctx.paths.var_dir.join("renewal");
+    std::fs::create_dir_all(&lock_dir)?;
+    let issuance_lock = std::fs::OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .write(true)
+        .open(lock_dir.join("issuance.lock"))?;
+    issuance_lock
+        .try_lock()
+        .map_err(|_| DeviceRkpError::OperationBusy)?;
 
     let mut prerequisites = environment.capabilities(ctx);
     let explicit_fingerprint = options

@@ -27,5 +27,9 @@
     "security_patch_invalid_all": "Μη έγκυρη μορφή",
     "add_system_app_title": "Πρόσθεσε Εφαρμογή Συστήματος",
     "customkb_remove_title": "Επιβεβαίωση Αφαίρεσης?"
+  },
+  "keybox": {
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
   }
 }

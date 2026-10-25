@@ -96,10 +96,11 @@ fn inline_upload_limits_leave_room_for_two_base64_files_in_the_shell_command() {
 }
 
 #[test]
-fn verifies_reference_ec_and_reports_unsupported_legacy_rsa() {
+fn verifies_reference_ec_and_legacy_rsa() {
     let xml = include_str!("../../duck-tricky-store/assets/aosp-keybox.xml");
-    assert!(keybox::extract(xml.as_bytes(), Format::Xml).is_err());
-    // The reference RSA key is 1024 bits, below the cryptographic backend's range.
+    let (_, both) = keybox::extract(xml.as_bytes(), Format::Xml).unwrap();
+    assert_eq!(both.keys.len(), 2);
+    assert!(both.certificate_signatures_valid);
     let start = xml.find("<Key algorithm=\"rsa\">").unwrap();
     let end = start + xml[start..].find("</Key>").unwrap() + "</Key>".len();
     let mut ec_only = xml.to_owned();

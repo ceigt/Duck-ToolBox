@@ -27,7 +27,9 @@
     "provision": "Aprovisionar ID de dispositivo",
     "provisionDry": "Ejecutar simulación",
     "confirm": "¿Escribir ahora estos ID en Keymaster? Esta acción no se puede deshacer desde Duck ToolBox.",
-    "trustkernelHint": "TrustKernel es experimental. rkp_flag y attestation_ids se escriben por separado; un fallo puede dejar una escritura parcial. Solo se verifica la existencia de los objetos. MEID y las rutas TA de QSEECom no se aplican."
+    "trustkernelHint": "TrustKernel es experimental. rkp_flag y attestation_ids se escriben por separado; un fallo puede dejar una escritura parcial. Solo se verifica la existencia de los objetos. MEID y las rutas TA de QSEECom no se aplican.",
+    "identityReview": "Attestation-specific properties take priority. Review conflicting values and edit the fields above before confirming.",
+    "identityReviewed": "I reviewed and selected the identity values to write"
   },
   "result": {
     "title": "Resultado",
@@ -44,7 +46,8 @@
     "verification": "Verificación",
     "existenceOnly": "Solo existencia de objetos",
     "taAcknowledgement": "Confirmación de la TA",
-    "omitted": "Sin escribir"
+    "omitted": "Sin escribir",
+    "reportFailed": "Operation completed, but report saving failed. Do not repeat provisioning for this reason."
   },
   "errors": {
     "missing_device_field": "Falta un identificador obligatorio."

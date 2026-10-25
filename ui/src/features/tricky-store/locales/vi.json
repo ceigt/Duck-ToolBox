@@ -65,7 +65,9 @@
     "repoTitle": "Kho lưu trữ Keybox",
     "omkCompatibilityTitle": "Khả năng tương thích keybox với OMK",
     "omkCompatibilityDescription": "Các bản OMK cũ yêu cầu cả EC và RSA trong keybox. Tệp chỉ có EC, như bản xuất RKP, cần hỗ trợ từ commit b12557c; nếu thiếu RSA, chuỗi RSA AOSP đi kèm sẽ được dùng. Không thể tự động xác minh bản đã cài có hỗ trợ hay không. Tiếp tục cài đặt?",
-    "continueInstall": "Tiếp tục cài đặt"
+    "continueInstall": "Tiếp tục cài đặt",
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
   },
   "policy": {
     "none": "Module đang hoạt động không có chính sách mặc định.",

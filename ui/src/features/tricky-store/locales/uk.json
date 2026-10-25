@@ -37,5 +37,9 @@
     "customkb_remove_title": "Підтвердити видалення?",
     "mode_dialog_title": "Режим",
     "mode_auto": "Авто"
+  },
+  "keybox": {
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
   }
 }

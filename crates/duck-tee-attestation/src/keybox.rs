@@ -25,7 +25,7 @@ pub enum Format {
 pub(crate) struct Material {
     pub algorithm: &'static str,
     pub private: Zeroizing<String>,
-    pub pair: KeyPair,
+    pub public: Vec<u8>,
     pub certificates: Vec<Certificate>,
 }
 
@@ -53,6 +53,37 @@ pub(crate) struct Report {
     pub revocation_checked: bool,
 }
 
+/// Local consistency check for installers. A self-signed root is not Google trust.
+pub fn validate_install(bytes: &[u8]) -> Result<()> {
+    validate_install_at(bytes, SystemTime::now())
+}
+
+fn validate_install_at(bytes: &[u8], now: SystemTime) -> Result<()> {
+    let boxes = xml::parse_install(bytes)?;
+    for keybox in boxes {
+        let mut algorithms = HashSet::new();
+        for key in keybox.keys {
+            ensure!(algorithms.insert(key.algorithm), "duplicate key algorithm");
+            // Tricky Store's Unknown format intentionally carries an uncertified RSA key.
+            if key.certificates.is_empty() && key.algorithm == "rsa" {
+                continue;
+            }
+            let ordered = ordered_chain(&key.public, &key.certificates)?;
+            ensure!(
+                ordered == key.certificates,
+                "certificate order or key mismatch"
+            );
+            ensure!(
+                ordered.iter().all(|cert| {
+                    let v = cert.tbs_certificate().validity();
+                    v.not_before.to_system_time() <= now && now <= v.not_after.to_system_time()
+                }),
+                "certificate is not currently valid"
+            );
+        }
+    }
+    Ok(())
+}
 pub(crate) fn extract(bytes: &[u8], format: Format) -> Result<(Zeroizing<String>, Report)> {
     let xml_start = xml::find_start(bytes);
     let (mut boxes, input_format) = match format {
@@ -67,7 +98,7 @@ pub(crate) fn extract(bytes: &[u8], format: Format) -> Result<(Zeroizing<String>
             if !algorithms.insert(key.algorithm) {
                 return Err(MaterialError::Keybox("duplicate key algorithm in one keybox").into());
             }
-            let ordered = ordered_chain(&key.pair, &key.certificates)?;
+            let ordered = ordered_chain(&key.public, &key.certificates)?;
             if ordered.len() != key.certificates.len() {
                 return Err(MaterialError::Keybox(
                     "keybox contains unrelated or repeated certificates",
@@ -78,7 +109,7 @@ pub(crate) fn extract(bytes: &[u8], format: Format) -> Result<(Zeroizing<String>
             summaries.push(KeySummary {
                 algorithm: key.algorithm,
                 certificates: key.certificates.len(),
-                public_key_sha256: files::digest(&key.pair.subject_public_key_info()),
+                public_key_sha256: files::digest(&key.public),
                 valid_now: key.certificates.iter().all(|cert| {
                     let validity = cert.tbs_certificate().validity();
                     let now = SystemTime::now();
@@ -121,8 +152,20 @@ pub(crate) fn material(
             MaterialError::Keybox("private key PEM label does not match its DER encoding").into(),
         );
     }
-    let pair = KeyPair::try_from(&der)
-        .map_err(|_| MaterialError::Keybox("unsupported or malformed private key; supported keys are EC P-256/P-384 and RSA 2048..8192"))?;
+    // AOSP's legacy software key is RSA-1024, which rcgen cannot import.
+    let pair = match KeyPair::try_from(&der) {
+        Ok(pair) => pair,
+        Err(_) => {
+            let public = super::legacy_rsa::public_key(&der)
+                .map_err(|_| MaterialError::Keybox("unsupported or malformed private key"))?;
+            return Ok(Material {
+                algorithm: "rsa",
+                private,
+                public,
+                certificates,
+            });
+        }
+    };
     let algorithm = match pair.algorithm() {
         alg if alg == &rcgen::PKCS_RSA_SHA256 => "rsa",
         alg if alg == &rcgen::PKCS_ECDSA_P256_SHA256 || alg == &rcgen::PKCS_ECDSA_P384_SHA384 => {
@@ -133,7 +176,7 @@ pub(crate) fn material(
     Ok(Material {
         algorithm,
         private,
-        pair,
+        public: pair.subject_public_key_info(),
         certificates,
     })
 }
@@ -161,7 +204,7 @@ fn from_pem(bytes: &[u8]) -> Result<Keybox> {
     let mut keys = Vec::new();
     for private in private_keys {
         let mut key = material(private, Vec::new())?;
-        key.certificates = ordered_chain(&key.pair, &certificates)?;
+        key.certificates = ordered_chain(&key.public, &certificates)?;
         used.extend(
             key.certificates
                 .iter()
@@ -181,10 +224,9 @@ fn from_pem(bytes: &[u8]) -> Result<Keybox> {
 
 /// Build a single unambiguous leaf-to-root path for this private key. Self-signatures
 /// establish internal consistency only; no root is considered trusted by this check.
-fn ordered_chain(pair: &KeyPair, certificates: &[Certificate]) -> Result<Vec<Certificate>> {
+fn ordered_chain(public: &[u8], certificates: &[Certificate]) -> Result<Vec<Certificate>> {
     let check = || -> Result<Vec<Certificate>> {
         ensure!(!certificates.is_empty() && certificates.len() <= 16);
-        let public = pair.subject_public_key_info();
         let leaves = certificates
             .iter()
             .filter(|cert| {
@@ -192,8 +234,8 @@ fn ordered_chain(pair: &KeyPair, certificates: &[Certificate]) -> Result<Vec<Cer
                     .subject_public_key_info()
                     .to_der()
                     .ok()
-                    .as_ref()
-                    == Some(&public)
+                    .as_deref()
+                    == Some(public)
             })
             .collect::<Vec<_>>();
         ensure!(leaves.len() == 1);
@@ -251,6 +293,7 @@ fn verify_certificate(cert: &Certificate, issuer: &Certificate) -> Result<()> {
                             algorithm.verify_signature(key, &message, signature).is_ok()
                         })
             })
+            || super::legacy_rsa::verify(cert, issuer).is_ok()
     );
     Ok(())
 }
@@ -291,4 +334,33 @@ fn render(boxes: &[Keybox]) -> Result<Zeroizing<String>> {
     }
     writeln!(output, "</AndroidAttestation>")?;
     Ok(output)
+}
+
+#[cfg(test)]
+mod install_tests {
+    use super::*;
+    const AOSP: &[u8] = include_bytes!("../../duck-tricky-store/assets/aosp-keybox.xml");
+    #[test]
+    fn legacy_aosp_consistency_and_expiry() {
+        let historical = SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(1_735_689_600);
+        validate_install_at(AOSP, historical).unwrap();
+        let expired = historical + std::time::Duration::from_secs(2 * 366 * 86400);
+        assert!(
+            validate_install_at(AOSP, expired)
+                .unwrap_err()
+                .to_string()
+                .contains("not currently valid")
+        );
+        let mut broken = AOSP.to_vec();
+        let text = std::str::from_utf8(AOSP).unwrap();
+        let offset = text.find("-----BEGIN RSA PRIVATE KEY-----").unwrap()
+            + "-----BEGIN RSA PRIVATE KEY-----".len();
+        let offset = offset
+            + broken[offset..]
+                .iter()
+                .position(|b| !b.is_ascii_whitespace())
+                .unwrap();
+        broken[offset] = b'!';
+        assert!(validate_install_at(&broken, historical).is_err());
+    }
 }

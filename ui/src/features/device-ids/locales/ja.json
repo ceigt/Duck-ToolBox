@@ -27,7 +27,9 @@
     "provision": "デバイス ID を書き込む",
     "provisionDry": "ドライランを実行",
     "confirm": "これらの ID を今すぐ Keymaster に書き込みますか？この操作は Duck ToolBox では元に戻せません。",
-    "trustkernelHint": "TrustKernel の書き込みは実験的です。rkp_flag と attestation_ids は個別に書き込むため、失敗時に一部だけ変更される場合があります。検証はオブジェクトの存在確認のみです。MEID と QSEECom の TA パスは適用されません。"
+    "trustkernelHint": "TrustKernel の書き込みは実験的です。rkp_flag と attestation_ids は個別に書き込むため、失敗時に一部だけ変更される場合があります。検証はオブジェクトの存在確認のみです。MEID と QSEECom の TA パスは適用されません。",
+    "identityReview": "Attestation-specific properties take priority. Review conflicting values and edit the fields above before confirming.",
+    "identityReviewed": "I reviewed and selected the identity values to write"
   },
   "result": {
     "title": "結果",
@@ -44,7 +46,8 @@
     "verification": "検証範囲",
     "existenceOnly": "オブジェクトの存在確認のみ",
     "taAcknowledgement": "TA の成功応答",
-    "omitted": "未書き込み"
+    "omitted": "未書き込み",
+    "reportFailed": "Operation completed, but report saving failed. Do not repeat provisioning for this reason."
   },
   "errors": {
     "missing_device_field": "必須の識別子が入力されていません。"

@@ -65,7 +65,9 @@
     "repoTitle": "مستودع صناديق المفاتيح",
     "omkCompatibilityTitle": "توافق keybox مع OMK",
     "omkCompatibilityDescription": "تتطلب إصدارات OMK القديمة وجود EC وRSA معًا في keybox. تحتاج ملفات EC فقط، بما فيها صادرات RKP، إلى الدعم المضاف في التعديل b12557c؛ وعند غياب RSA تُستخدم سلسلة RSA المضمنة من AOSP. لا يمكن التحقق تلقائيًا من دعم الإصدار المثبت. هل تريد متابعة التثبيت؟",
-    "continueInstall": "متابعة التثبيت"
+    "continueInstall": "متابعة التثبيت",
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
   },
   "policy": {
     "none": "لا تتضمن الوحدة النشطة سياسة افتراضية.",

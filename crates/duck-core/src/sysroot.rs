@@ -46,7 +46,13 @@ impl Sysroot {
     pub fn display_path(&self, host_path: &Path) -> String {
         match host_path.strip_prefix(&self.root) {
             Ok(relative) if self.root != Path::new("/") => {
-                format!("/{}", relative.display())
+                format!(
+                    "/{}",
+                    relative
+                        .display()
+                        .to_string()
+                        .replace(std::path::MAIN_SEPARATOR, "/")
+                )
             }
             _ => host_path.display().to_string(),
         }

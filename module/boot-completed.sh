@@ -19,6 +19,9 @@ fi
 "$DUCKCTL" tricky-store auto-apply >/dev/null 2>&1 || true
 "$DUCKCTL" describe >/dev/null 2>&1 || true
 
+# This exits immediately when disabled, except to recover an interrupted swap.
+nohup sh "$MODPATH/bin/renewal-scheduler.sh" >/dev/null 2>&1 </dev/null &
+
 # TSupport-Advance rewrites the target list on its own unless this flag exists (as Tricky
 # Addon does). Shared storage appears only after the user unlocks the device.
 tries=0

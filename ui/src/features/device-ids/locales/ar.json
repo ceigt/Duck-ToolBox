@@ -27,7 +27,9 @@
     "provision": "كتابة معرّفات الجهاز",
     "provisionDry": "بدء التشغيل التجريبي",
     "confirm": "هل تريد كتابة هذه المعرّفات في Keymaster الآن؟ لا يمكن التراجع عن ذلك من خلال Duck ToolBox.",
-    "trustkernelHint": "دعم TrustKernel تجريبي. تُكتب rkp_flag وattestation_ids بشكل منفصل؛ قد يترك الفشل كتابة جزئية. يتحقق الفحص من وجود الكائنات فقط. لا تنطبق MEID ومسارات TA الخاصة بـ QSEECom."
+    "trustkernelHint": "دعم TrustKernel تجريبي. تُكتب rkp_flag وattestation_ids بشكل منفصل؛ قد يترك الفشل كتابة جزئية. يتحقق الفحص من وجود الكائنات فقط. لا تنطبق MEID ومسارات TA الخاصة بـ QSEECom.",
+    "identityReview": "Attestation-specific properties take priority. Review conflicting values and edit the fields above before confirming.",
+    "identityReviewed": "I reviewed and selected the identity values to write"
   },
   "result": {
     "title": "النتيجة",
@@ -44,7 +46,8 @@
     "verification": "نطاق التحقق",
     "existenceOnly": "وجود الكائنات فقط",
     "taAcknowledgement": "تأكيد نجاح TA",
-    "omitted": "لم تُكتب"
+    "omitted": "لم تُكتب",
+    "reportFailed": "Operation completed, but report saving failed. Do not repeat provisioning for this reason."
   },
   "errors": {
     "missing_device_field": "أحد المعرّفات المطلوبة فارغ."

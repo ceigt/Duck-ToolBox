@@ -19,7 +19,7 @@ struct Node {
 }
 
 pub(crate) fn parse(bytes: &[u8]) -> Result<Vec<Keybox>> {
-    parse_inner(bytes).map_err(|error| {
+    parse_inner(bytes, false).map_err(|error| {
         if error.is::<MaterialError>() {
             error
         } else {
@@ -28,7 +28,11 @@ pub(crate) fn parse(bytes: &[u8]) -> Result<Vec<Keybox>> {
     })
 }
 
-fn parse_inner(bytes: &[u8]) -> Result<Vec<Keybox>> {
+pub(crate) fn parse_install(bytes: &[u8]) -> Result<Vec<Keybox>> {
+    parse_inner(bytes, true)
+}
+
+fn parse_inner(bytes: &[u8], allow_empty_chain: bool) -> Result<Vec<Keybox>> {
     let start = find_start(bytes).ok_or_else(|| anyhow::anyhow!("no XML"))?;
     let (root, length) = tree(&bytes[start..])?;
     let end = start + length;
@@ -62,7 +66,10 @@ fn parse_inner(bytes: &[u8]) -> Result<Vec<Keybox>> {
             let private = one_pem(private, false)?;
             let chain = &key.children[1];
             ensure!(chain.name == "CertificateChain" && chain.attributes.is_empty());
-            ensure!(chain.children.len() >= 2 && chain.children.len() <= 9);
+            ensure!(
+                chain.children.len() >= if allow_empty_chain { 1 } else { 2 }
+                    && chain.children.len() <= 9
+            );
             ensure!(count(&chain.children[0], "NumberOfCertificates")? == chain.children.len() - 1);
             let mut certificates = Vec::new();
             for cert in &chain.children[1..] {

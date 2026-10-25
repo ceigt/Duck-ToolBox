@@ -7,6 +7,7 @@
 use anyhow::Result;
 use duck_platform::props;
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 mod backend;
 mod cli;
@@ -35,11 +36,22 @@ pub use cli::{Command, FEATURE, run};
 pub use defaults::Defaults;
 pub use error::DeviceIdsError;
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IdentitySource {
+    pub property: String,
+    pub value: String,
+    pub alternatives: Vec<(String, String)>,
+}
+
 const DEFAULT_TA_NAME: &str = "keymaster64";
 const DEFAULT_TA_PATH: &str = "/vendor/firmware_mnt/image";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeviceIdsProfile {
+    #[serde(default)]
+    pub identity_reviewed: bool,
+    #[serde(default)]
+    pub identity_sources: BTreeMap<String, IdentitySource>,
     #[serde(default)]
     pub brand: String,
     #[serde(default)]
@@ -71,6 +83,8 @@ pub struct DeviceIdsProfile {
 impl Default for DeviceIdsProfile {
     fn default() -> Self {
         Self {
+            identity_reviewed: false,
+            identity_sources: BTreeMap::new(),
             brand: String::new(),
             device: String::new(),
             product: String::new(),
@@ -109,6 +123,8 @@ pub struct DeviceIdsProvisionResult {
     pub ta_api_version: Option<String>,
     pub ta_version: Option<String>,
     pub report_path: String,
+    pub report_saved: bool,
+    pub report_warning: Option<String>,
 }
 
 #[derive(Debug, Clone, Copy, Serialize)]
@@ -139,11 +155,20 @@ pub fn provision(
     let properties = props::all();
     let backend = backend::select(&properties, &ctx.sysroot)?;
     let detected = defaults::profile(&properties, Some(backend));
+    if !profile.dry_run
+        && !profile.identity_reviewed
+        && detected
+            .identity_sources
+            .values()
+            .any(|s| !s.alternatives.is_empty())
+    {
+        return Err(anyhow::anyhow!("attestation identity properties conflict; review identity sources before live provisioning").into());
+    }
     let resolved = merge_missing(profile, detected);
     let plan = plan::Plan::build(&resolved, backend, &properties)?;
     let report = report::Report::new(&ctx.paths)?;
     let mut session = backend::SessionInfo::default();
-    report.write(&resolved, &plan, &session, "prepared", None)?;
+    report.write(&resolved, &plan, &session, "outcome_unknown", None)?;
     let execution = if resolved.dry_run {
         Ok(())
     } else if !cfg!(target_os = "android") {
@@ -176,7 +201,8 @@ pub fn provision(
         };
         return Err(duck_core::Failure::with_details(error, details()));
     }
-    saved.map_err(|error| duck_core::Failure::with_details(error, details()))?;
+    let report_saved = saved.is_ok();
+    let report_warning = (!report_saved).then(|| "Operation completed but report update failed; do not repeat provisioning solely to recreate the report".into());
     Ok(DeviceIdsProvisionResult {
         backend,
         verification: if resolved.dry_run {
@@ -197,10 +223,13 @@ pub fn provision(
         ta_api_version: session.ta_api_version,
         ta_version: session.ta_version,
         report_path: report.path().display().to_string(),
+        report_saved,
+        report_warning,
     })
 }
 
 fn merge_missing(mut profile: DeviceIdsProfile, detected: DeviceIdsProfile) -> DeviceIdsProfile {
+    profile.identity_sources = detected.identity_sources;
     for (target, fallback) in [
         (&mut profile.brand, detected.brand),
         (&mut profile.device, detected.device),

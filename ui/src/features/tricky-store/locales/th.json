@@ -34,5 +34,9 @@
     "customkb_remove_title": "ยืนยันการลบ",
     "mode_dialog_title": "โหมด",
     "mode_auto": "อัตโนมัติ"
+  },
+  "keybox": {
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
   }
 }

@@ -38,7 +38,7 @@ watch(
   { immediate: true },
 )
 
-type Key = keyof Omit<DeviceIdsProfile, "dry_run">
+type Key = keyof Omit<DeviceIdsProfile, "dry_run" | "identity_reviewed" | "identity_sources">
 const mainFields: Key[] = ["brand", "model", "device", "product", "manufacturer", "serial"]
 const trustkernel = computed(() => defaults.data.value?.backend === "trustkernel")
 const advancedFields = computed<Key[]>(() =>
@@ -107,7 +107,12 @@ const resultRows = computed(() => {
       value: data.loaded_library ?? none,
       mono: true,
     },
-    { label: t("result.report"), value: data.report_path, mono: true, copy: true },
+    {
+      label: t("result.report"),
+      value: data.report_saved === false ? t("result.reportFailed") : data.report_path,
+      mono: true,
+      copy: data.report_saved !== false,
+    },
     ...data.ids.map((id) => ({ label: id.label, value: id.value, mono: true })),
   ]
 })
@@ -187,10 +192,35 @@ const resultRows = computed(() => {
           <Switch id="dry-run" v-model="profile.dry_run" />
         </Field>
 
+        <div
+          v-if="Object.keys(profile.identity_sources ?? {}).length"
+          class="bg-card rounded-lg p-4"
+        >
+          <p>{{ t("form.identityReview") }}</p>
+          <div
+            v-for="(source, field) in profile.identity_sources"
+            :key="field"
+            class="my-2 text-sm"
+          >
+            <p>{{ field }}: {{ source.property }} = {{ source.value }}</p>
+            <p v-for="alternative in source.alternatives" :key="alternative[0]">
+              {{ alternative[0] }} = {{ alternative[1] }}
+            </p>
+          </div>
+          <FieldLabel for="identity-reviewed">{{ t("form.identityReviewed") }}</FieldLabel>
+          <Switch id="identity-reviewed" v-model="profile.identity_reviewed" />
+        </div>
         <Button
           size="lg"
           :variant="profile.dry_run ? 'default' : 'destructive'"
-          :disabled="provision.isPending.value"
+          :disabled="
+            provision.isPending.value ||
+            (!profile.dry_run &&
+              Object.values(profile.identity_sources ?? {}).some(
+                (source) => source.alternatives.length > 0,
+              ) &&
+              !profile.identity_reviewed)
+          "
           @click="submit"
         >
           <Spinner v-if="provision.isPending.value" class="size-6" />

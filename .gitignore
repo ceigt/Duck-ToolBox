@@ -6,6 +6,8 @@
 /module/webroot/
 /dist/
 /var/
+/renewal/build/
+/module/bin/duck-renewal.dex
 module/bin/duckd
 module/bin/duckd.exe
 *.zip

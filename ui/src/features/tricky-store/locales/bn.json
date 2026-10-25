@@ -28,5 +28,9 @@
     "security_patch_invalid_all": "অবৈধ ফর্ম্যাট",
     "add_system_app_title": "সিস্টেম অ্যাপ যোগ করুন",
     "customkb_remove_title": "টেমপ্লেট সংরক্ষণ করো"
+  },
+  "keybox": {
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
   }
 }

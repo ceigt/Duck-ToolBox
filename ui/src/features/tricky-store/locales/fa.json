@@ -28,5 +28,9 @@
     "security_patch_invalid_all": "قالب نامعتبر",
     "add_system_app_title": "افزودن برنامه سیستمی",
     "customkb_remove_title": "تایید حذف"
+  },
+  "keybox": {
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
   }
 }

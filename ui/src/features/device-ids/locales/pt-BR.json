@@ -27,7 +27,9 @@
     "provision": "Provisionar IDs do dispositivo",
     "provisionDry": "Executar simulação",
     "confirm": "Gravar estes IDs no Keymaster agora? Não é possível desfazer isso pelo Duck ToolBox.",
-    "trustkernelHint": "TrustKernel é experimental. rkp_flag e attestation_ids são gravados separadamente; uma falha pode deixar uma gravação parcial. A verificação confirma apenas a existência dos objetos. MEID e os caminhos TA de QSEECom não se aplicam."
+    "trustkernelHint": "TrustKernel é experimental. rkp_flag e attestation_ids são gravados separadamente; uma falha pode deixar uma gravação parcial. A verificação confirma apenas a existência dos objetos. MEID e os caminhos TA de QSEECom não se aplicam.",
+    "identityReview": "Attestation-specific properties take priority. Review conflicting values and edit the fields above before confirming.",
+    "identityReviewed": "I reviewed and selected the identity values to write"
   },
   "result": {
     "title": "Resultado",
@@ -44,7 +46,8 @@
     "verification": "Verificação",
     "existenceOnly": "Apenas existência dos objetos",
     "taAcknowledgement": "Confirmação da TA",
-    "omitted": "Não gravados"
+    "omitted": "Não gravados",
+    "reportFailed": "Operation completed, but report saving failed. Do not repeat provisioning for this reason."
   },
   "errors": {
     "missing_device_field": "Um identificador obrigatório está vazio."

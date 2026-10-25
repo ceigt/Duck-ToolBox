@@ -94,6 +94,7 @@ const installSchema = z.object({
   backend: z.string(),
   target_path: z.string(),
   backup_path: z.string().nullable(),
+  load_confirmed: z.boolean().optional(),
   size: z.number(),
   source: z.string(),
   summary: z.object({

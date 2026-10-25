@@ -3,6 +3,17 @@ import { z } from "zod"
 import { duckd } from "@/core/duckd"
 
 const profileSchema = z.object({
+  identity_reviewed: z.boolean().optional(),
+  identity_sources: z
+    .record(
+      z.string(),
+      z.object({
+        property: z.string(),
+        value: z.string(),
+        alternatives: z.array(z.tuple([z.string(), z.string()])),
+      }),
+    )
+    .optional(),
   brand: z.string(),
   device: z.string(),
   product: z.string(),
@@ -36,6 +47,8 @@ const resultSchema = z
     ta_api_version: z.string().nullable(),
     ta_version: z.string().nullable(),
     report_path: z.string(),
+    report_saved: z.boolean().optional(),
+    report_warning: z.string().nullable().optional(),
   })
   .refine((data) => data.count === data.ids.length, {
     message: "ID count disagrees with the reported entries",

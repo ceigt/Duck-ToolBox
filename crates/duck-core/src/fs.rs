@@ -161,17 +161,6 @@ fn copy_ownership(_original: &fs::Metadata, _target: &Path) -> Result<()> {
 fn replace_file(temp_path: &Path, destination: &Path) -> Result<()> {
     match fs::rename(temp_path, destination) {
         Ok(()) => Ok(()),
-        Err(_) if destination.exists() => {
-            fs::remove_file(destination)
-                .with_context(|| format!("remove {}", destination.display()))?;
-            fs::rename(temp_path, destination).with_context(|| {
-                format!(
-                    "rename {} -> {}",
-                    temp_path.display(),
-                    destination.display()
-                )
-            })
-        }
         Err(error) => Err(error).with_context(|| {
             format!(
                 "rename {} -> {}",
@@ -202,9 +191,10 @@ fn unique_suffix(attempt: u32) -> String {
 mod tests {
     use std::{env, fs};
 
+    #[cfg(unix)]
+    use super::write_bytes_preserving;
     use super::{
         backup_copy, create_unique_dir, list_files_recursive, read_optional, write_bytes_atomic,
-        write_bytes_preserving,
     };
 
     fn temp_root(name: &str) -> std::path::PathBuf {

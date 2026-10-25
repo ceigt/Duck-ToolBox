@@ -44,6 +44,7 @@ export function useKeyboxInstall<Input>(
       const detail = [
         t("keybox.installedDetail", { count: result.summary.keyboxes, path: result.target_path }),
         result.backup_path ? t("keybox.backup", { path: result.backup_path }) : "",
+        result.load_confirmed ? t("keybox.loadConfirmed") : t("keybox.loadUnchecked"),
       ]
       notifySuccess(t(options.success), detail.filter(Boolean).join("\n"))
       void client.invalidateQueries({ queryKey: STATUS_KEY })

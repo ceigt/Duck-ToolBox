@@ -489,29 +489,26 @@ fn secret_outputs_are_private_and_replace_symlinks() {
 
     let destination = root.path().join("export.xml");
     fs::write(&destination, "old").unwrap();
-    fs::set_permissions(&destination, fs::Permissions::from_mode(0o644)).unwrap();
+    assert!(super::write_keybox(&destination, &artifacts.keybox_xml).is_err());
+    assert_eq!(fs::read_to_string(&destination).unwrap(), "old");
+    fs::remove_file(&destination).unwrap();
     super::write_keybox(&destination, &artifacts.keybox_xml).unwrap();
     assert_eq!(
         fs::metadata(&destination).unwrap().permissions().mode() & 0o777,
         0o600
     );
-
     let target = root.path().join("untouched.xml");
     fs::write(&target, "original").unwrap();
     fs::remove_file(&destination).unwrap();
     symlink(&target, &destination).unwrap();
-    super::write_keybox(&destination, &artifacts.keybox_xml).unwrap();
+    assert!(super::write_keybox(&destination, &artifacts.keybox_xml).is_err());
     assert!(
-        !fs::symlink_metadata(&destination)
+        fs::symlink_metadata(&destination)
             .unwrap()
             .file_type()
             .is_symlink()
     );
     assert_eq!(fs::read_to_string(target).unwrap(), "original");
-    assert_eq!(
-        fs::read_to_string(destination).unwrap(),
-        artifacts.keybox_xml
-    );
 }
 
 #[test]

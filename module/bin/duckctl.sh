@@ -25,6 +25,25 @@ case "$MODULE_ROOT" in
     ;;
 esac
 DATA_ROOT="${DUCK_TOOLBOX_DATA_ROOT:-$DEFAULT_DATA_ROOT}"
+
+# Local renewal extension; native TEESimulator installs share the Java transaction.
+if [ "${1:-}" = "renewal" ]; then
+  shift
+  [ "$#" -gt 0 ] || set -- status
+  action="${1:-status}"
+  if [ "$action" = "check" ]; then
+    nohup "$0" renewal tick >/dev/null 2>&1 </dev/null &
+    action=status
+    set -- status
+  fi
+  CLASSPATH="$MODULE_ROOT/bin/duck-renewal.dex" /system/bin/app_process / dev.duck.renewal.Main \
+    "$MODULE_ROOT" "$DATA_ROOT" "$@"
+  result=$?
+  if [ "$result" -eq 0 ] && [ "$action" = "enable" ]; then
+    nohup sh "$MODULE_ROOT/bin/renewal-scheduler.sh" >/dev/null 2>&1 </dev/null &
+  fi
+  exit "$result"
+fi
 SEARCHED_CANDIDATES=""
 # Callers that parse output (the WebUI, boot scripts) never attach a terminal.
 WANTS_JSON=1

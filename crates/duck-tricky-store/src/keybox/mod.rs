@@ -9,7 +9,7 @@ use std::fs;
 use anyhow::Result;
 use duck_core::{
     Context, Sysroot,
-    fs::{backup_copy, modified_unix, write_bytes_preserving},
+    fs::{create_unique_dir, modified_unix, write_bytes_preserving},
 };
 use serde::Serialize;
 
@@ -21,6 +21,7 @@ use crate::{
 
 pub mod decode;
 pub mod generate;
+mod transaction;
 pub mod validate;
 
 use validate::KeyboxSummary;
@@ -34,6 +35,7 @@ pub struct KeyboxInstallData {
     pub backend: Backend,
     pub target_path: String,
     pub backup_path: Option<String>,
+    pub load_confirmed: bool,
     pub size: u64,
     pub source: String,
     pub summary: KeyboxSummary,
@@ -50,24 +52,55 @@ pub fn status(sysroot: &Sysroot, device_path: &str) -> KeyboxStatus {
 }
 
 pub fn install(ctx: &Context, content: &str, source: &str) -> Result<KeyboxInstallData> {
+    let _config_lock = crate::config_lock::acquire_native(ctx)?;
+    fs::create_dir_all(&ctx.paths.var_dir)?;
+    let install_lock = fs::OpenOptions::new()
+        .create(true)
+        .truncate(false)
+        .write(true)
+        .open(ctx.paths.var_dir.join("keybox-install.lock"))?;
+    install_lock
+        .try_lock()
+        .map_err(|_| TrickyError::BackendRule("another keybox installation is running".into()))?;
     let (detection, adapter) = active_adapter(&ctx.sysroot)?;
     let cleaned = validate::clean(content)?;
     let summary = validate::validate(&cleaned)?;
     check_backend_rules(detection.backend, &summary)?;
+    duck_tee_attestation::validate_install(cleaned.as_bytes()).map_err(|_| {
+        TrickyError::InvalidKeybox(
+            "PEM, private key, certificate signature/order or validity check failed".into(),
+        )
+    })?;
 
     let device_path = adapter.keybox_path(&ctx.sysroot);
     let host_path = ctx.sysroot.path(&device_path);
     let existed = host_path.is_file();
-    let backup = backup_copy(&host_path)?;
-    write_bytes_preserving(&host_path, cleaned.as_bytes())?;
-    if !existed {
-        set_mode(&host_path, 0o644);
-    }
+    let backup = if detection.backend == Backend::TeeSimulator && cfg!(target_os = "android") {
+        transaction::install(ctx, &device_path, &cleaned)?
+    } else {
+        let backup = if existed {
+            let directory =
+                create_unique_dir(&ctx.paths.var_dir.join("keybox-backups"), "install")?;
+            set_mode(&directory, 0o700);
+            let backup = directory.join("keybox.xml");
+            fs::copy(&host_path, &backup)?;
+            set_mode(&backup, 0o600);
+            Some(backup)
+        } else {
+            None
+        };
+        write_bytes_preserving(&host_path, cleaned.as_bytes())?;
+        if !existed {
+            set_mode(&host_path, 0o600);
+        }
+        backup
+    };
 
     Ok(KeyboxInstallData {
         backend: detection.backend,
         target_path: device_path,
         backup_path: backup.map(|path| ctx.sysroot.display_path(&path)),
+        load_confirmed: detection.backend == Backend::TeeSimulator && cfg!(target_os = "android"),
         size: cleaned.len() as u64,
         source: source.to_owned(),
         summary,
@@ -144,6 +177,16 @@ mod tests {
         ] {
             check_backend_rules(backend, &summary).unwrap();
         }
+    }
+
+    #[test]
+    fn malformed_pem_is_rejected_even_when_xml_structure_is_valid() {
+        let start = AOSP_KEYBOX.find("-----BEGIN ").unwrap();
+        let end = AOSP_KEYBOX[start..].find("</PrivateKey>").unwrap() + start;
+        let mut broken = AOSP_KEYBOX.to_owned();
+        broken.replace_range(start..end, "not a PEM key\n");
+        assert!(validate::validate(&broken).is_ok());
+        assert!(duck_tee_attestation::validate_install(broken.as_bytes()).is_err());
     }
 
     fn summary(

@@ -38,5 +38,9 @@
     "customkb_remove_title": "Kaldırmayı Onayla?",
     "mode_dialog_title": "Mod",
     "mode_auto": "Otomatik"
+  },
+  "keybox": {
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
   }
 }

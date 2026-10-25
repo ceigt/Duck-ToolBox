@@ -27,7 +27,9 @@
     "provision": "기기 ID 기록",
     "provisionDry": "모의 실행 시작",
     "confirm": "지금 이 ID를 Keymaster에 기록하시겠습니까? Duck ToolBox에서는 되돌릴 수 없습니다.",
-    "trustkernelHint": "TrustKernel 기록은 실험적입니다. rkp_flag와 attestation_ids를 별도로 기록하므로 실패 시 일부만 변경될 수 있습니다. 검증은 객체 존재 여부만 확인합니다. MEID와 QSEECom TA 위치는 적용되지 않습니다."
+    "trustkernelHint": "TrustKernel 기록은 실험적입니다. rkp_flag와 attestation_ids를 별도로 기록하므로 실패 시 일부만 변경될 수 있습니다. 검증은 객체 존재 여부만 확인합니다. MEID와 QSEECom TA 위치는 적용되지 않습니다.",
+    "identityReview": "Attestation-specific properties take priority. Review conflicting values and edit the fields above before confirming.",
+    "identityReviewed": "I reviewed and selected the identity values to write"
   },
   "result": {
     "title": "결과",
@@ -44,7 +46,8 @@
     "verification": "검증 범위",
     "existenceOnly": "객체 존재 여부만 확인",
     "taAcknowledgement": "TA 성공 응답",
-    "omitted": "기록되지 않음"
+    "omitted": "기록되지 않음",
+    "reportFailed": "Operation completed, but report saving failed. Do not repeat provisioning for this reason."
   },
   "errors": {
     "missing_device_field": "필수 식별자가 비어 있습니다."
