@@ -1,6 +1,6 @@
 id=duck-toolbox
 name=Duck ToolBox (RKP Renewal)
-version=0.2.0-renewal.3
-versionCode=118
+version=0.2.0-renewal.4
+versionCode=119
 author=Eltavine & KOW & MhmRdd
 description=Fork of v0.2.0-Stable with opt-in RKP renewal for TEESimulator; includes the upstream independent GPLv3 Play Integrity engine (disabled on first install).

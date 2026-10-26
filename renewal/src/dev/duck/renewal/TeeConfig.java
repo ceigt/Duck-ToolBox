@@ -13,7 +13,7 @@ final class TeeConfig {
             throw new IOException("target_unsupported");
         Path path = tee.resolve(relative);
         Keybox.safePath(path);
-        if (!path.startsWith(tee) || !name.endsWith(".xml")) throw new IOException("target_unsupported");
+        if (!path.startsWith(tee)) throw new IOException("target_unsupported");
         return path;
     }
 

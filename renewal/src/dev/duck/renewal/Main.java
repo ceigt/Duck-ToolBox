@@ -12,7 +12,7 @@ import org.json.*;
 
 /** app_process boundary; public commands return a redacted Duck envelope. */
 public final class Main implements Renewal.Platform {
-    static final String VERSION = "0.2.0-renewal.3";
+    static final String VERSION = "0.2.0-renewal.4";
     final Path module, data, tee;
     Path installTarget;
     Object context;
@@ -52,8 +52,8 @@ public final class Main implements Renewal.Platform {
     }
 
     @Override public void reload(Path changed) throws Exception {
-        // TEESimulator observes only its top-level directory, not nested keybox folders.
-        if (!changed.getParent().equals(tee)) {
+        // Its watcher sees only top-level, lowercase .xml names and config.json.
+        if (!changed.getParent().equals(tee) || !changed.getFileName().toString().endsWith(".xml")) {
             Path path = tee.resolve("config.json");
             Renewal.atomic(path, Keybox.readFile(path, 256 * 1024));
         }

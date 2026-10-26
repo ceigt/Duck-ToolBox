@@ -144,7 +144,7 @@ const MAX_KEYBOX_BYTES: usize = 1024 * 1024;
 pub async fn fetch(url: &str, decode_steps: &str) -> Result<String> {
     decode::check(decode_steps)?;
     if !duck_platform::net::is_web_url(url) {
-        return Err(TrickyError::Download(format!("not an http(s) URL: `{url}`")).into());
+        return Err(TrickyError::Download("not an http(s) URL".into()).into());
     }
     let body = duck_platform::net::fetch_bytes(url, MAX_KEYBOX_BYTES)
         .await

@@ -44,8 +44,32 @@ public final class AuditFixTest {
         Files.move(first.target, tee.resolve("custom.xml")); profiles.getJSONObject("default").put("keybox", "custom.xml");
         profiles.getJSONObject("second").put("keybox", "custom.xml");
         check(TeeConfig.manualTarget(tee, tee.resolve("custom.xml"), config), "manual custom filename follows config");
+        for (String name : Arrays.asList("keybox.XML", "attestation", "nested/attestation")) {
+            JSONObject named = new JSONObject().put("version", 1).put("profiles", new JSONObject()
+                    .put("default", new JSONObject().put("keybox", name).put("mode", "patch")));
+            check(TeeConfig.manualTarget(tee, tee.resolve(name), named), "manual target accepts safe name: " + name);
+        }
         try { TeeConfig.keybox(tee, "../escape.xml"); throw new AssertionError("traversal"); }
         catch (IOException expected) { count++; }
+        for (String unsafe : Arrays.asList("", ".", "nested/../attestation", tee.resolve("outside").toString())) {
+            try { TeeConfig.keybox(tee, unsafe); throw new AssertionError("unsafe target accepted"); }
+            catch (IOException expected) { count++; }
+        }
+        Path watchedConfig = tee.resolve("config.json");
+        byte[] configBytes = config.toString().getBytes(StandardCharsets.UTF_8);
+        Files.write(watchedConfig, configBytes);
+        Main watcher = new Main(tee, first.root, tee);
+        for (String name : Arrays.asList("keybox.XML", "attestation", "nested/attestation", "nested/keybox.xml")) {
+            Files.setLastModifiedTime(watchedConfig, java.nio.file.attribute.FileTime.fromMillis(1000));
+            watcher.reload(tee.resolve(name));
+            check(Files.getLastModifiedTime(watchedConfig).toMillis() != 1000
+                    && Arrays.equals(configBytes, Files.readAllBytes(watchedConfig)),
+                    "unwatched target triggers reload without changing config: " + name);
+        }
+        Files.setLastModifiedTime(watchedConfig, java.nio.file.attribute.FileTime.fromMillis(1000));
+        watcher.reload(tee.resolve("keybox.xml"));
+        check(Files.getLastModifiedTime(watchedConfig).toMillis() == 1000,
+                "watched top-level XML needs no config rewrite");
         Map<String,String> proof = TeeConfig.proof(tee, config);
         String id = Keybox.runtimeId(RenewalTest.fixture("new.xml"));
         String logs = RegressionTest.build(id,"100").replace("mode=patch", "mode=generation")

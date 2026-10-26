@@ -403,6 +403,29 @@ fn command_log_keeps_outcomes_only() {
 }
 
 #[test]
+fn invalid_keybox_urls_never_expose_credentials_in_errors_or_logs() {
+    let env = env("keybox-url-privacy");
+    for url in [
+        "https://TEST_USER:TEST_PASSWORD@example.invalid:bad/TEST_PATH?token=TEST_TOKEN",
+        "ftp://TEST_USER:TEST_PASSWORD@example.invalid/TEST_PATH?token=TEST_TOKEN",
+    ] {
+        let output = command(&env)
+            .args(["tricky-store", "keybox", "fetch", "--url", url])
+            .output()
+            .unwrap();
+        assert!(!output.status.success());
+        let payload: Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(payload["error"]["code"], "download_failed");
+        let response = String::from_utf8(output.stdout).unwrap();
+        let log = fs::read_to_string(env.data.join("var/logs/duckd.log")).unwrap();
+        for secret in ["TEST_USER", "TEST_PASSWORD", "TEST_PATH", "TEST_TOKEN"] {
+            assert!(!response.contains(secret), "credential in CLI response");
+            assert!(!log.contains(secret), "credential in command log");
+        }
+    }
+}
+
+#[test]
 fn tricky_store_status_without_backend() {
     let env = env("ts-none");
     let payload = run(&env, &["tricky-store", "status", "--json"]);

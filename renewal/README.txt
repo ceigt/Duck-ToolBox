@@ -1,4 +1,4 @@
-Duck ToolBox 0.2.0-renewal.3 — Fork 测试版
+Duck ToolBox 0.2.0-renewal.4 — Fork 测试版
 原项目：https://github.com/eltavine/Duck-ToolBox/tree/v0.2.0-Stable
 原作者：Eltavine、KOW、MhmRdd；原 MIT 许可保留于 LICENSE。
 Fork 源码与构建：https://github.com/ceigt/Duck-ToolBox
@@ -21,7 +21,7 @@ Fork 源码与构建：https://github.com/ceigt/Duck-ToolBox
    可延长至 12 小时。这是本功能自行设置的上限，不代表 Google 公布的限额，
    也不能保证不会被服务器限流。首次无法确定请求结果时会暂停。
 
-兼容范围
+自动续签兼容范围
 - 此安装包仅包含 arm64 原生后端，针对已检查的一加 Ace 3 / Android 16。
 - 需要 root、TEESimulator 已启用且 versionCode 至少为 75。
 - 只支持 version=1 配置、单个 default 配置、mode=patch、keybox=keybox.xml。
@@ -85,8 +85,10 @@ Fork 源码与构建：https://github.com/ceigt/Duck-ToolBox
 - GitHub Actions 运行原生后端、前端、模块脚本、独立引擎和续签合成数据测试。
   每个安装包的构建与测试结果见对应 Actions 运行记录。
 - 续签后台使用临时合成证书进行离线测试；CI 不连接手机或 Google 进行签发。
-- 前版已于 2026-10-26 完成安装、重启、当前证书与完整性检查；
-  本版修复需重新安装验证。真实到期自动续签和跨周运行仍待后续测试。
+- v0.2.0-renewal.3 已于 2026-10-26 完成安装、重启、当前证书加载检查，
+  用户确认 BASIC、DEVICE、STRONG 全通过。各版实机结果以对应测试记录为准。
+  本版补充无效 URL 隐私、目标文件名及重载回归测试；真实到期自动续签、
+  自动新证书替换和跨周运行仍待后续测试。
 - 从旧版迁移会保留续签状态及 TEESimulator 配置；一加 Ace 3 的
   ace3 attestation product correction 模块仍应保持启用。
 
@@ -127,8 +129,10 @@ ui/src/features/rkp-device：面板、接口与中英文文字；其他语言沿
   外部 root 工具不遵守 Duck 的锁，仍须避免同时修改 TEESimulator 配置。
 - 手动导入先验证 PEM、密钥匹配、链签名与有效期。保留 AOSP/自签用途，
   不把所有手动导入都限制为 Google 根。TEESimulator 另做 PKIX 验证与加载确认。
-  当前事务型 TEESimulator 手动替换要求存在可备份的 keybox.xml，且与上面的
-  单 default/patch 配置兼容；不支持首次空目录安装或多配置自动替换。
+  手动安装跟随 default 配置的实际目标，支持 patch/generation、多 profile、
+  安全相对路径及原目标不存在的首次安装；文件内容必须是有效 Keybox XML。
+  路径后缀不影响资格。顶层小写 .xml 以外的目标通过原子重发相同配置触发重载。
+  自动续签仍采用上面列出的单 default/patch、keybox.xml 配置范围。
 - 手动备份使用唯一名称，保留供人工恢复，不参与自动到期清理。
 - 其他后端只显示文件写入结果，明确标记未确认加载。
 - 状态显示按文件 SHA-256 与根证书集合缓存本地验证结果；时钟回退重新校验。
@@ -141,7 +145,8 @@ ui/src/features/rkp-device：面板、接口与中英文文字；其他语言沿
   使用现场生成的合成证书，不连接手机、不向 Google 请求证书。
 
 安装不会替换现用证书或 TEESimulator 配置；已有续签开启状态会继续生效。
-实机功能测试由用户另行安排，当前 TEESimulator 的日志兼容性、热加载及回滚尚待验证。
+当前证书的加载确认已验证；其他配置组合和中断恢复使用合成数据测试，
+真实到期签发、自动新证书替换与回滚的故障注入仍未完成。
 内置公开 AOSP 示例证书已于 2026 年 1 月到期；可离线解析，但安装校验会拒绝。
 RSA-1024 仅保留旧软件证明材料的一致性验证，不用于生成或推荐新证书。
 Windows 不能直接运行 Android/Unix 专用的原生测试；这些在 Linux CI 中保留。
@@ -149,10 +154,12 @@ Windows 不能直接运行 Android/Unix 专用的原生测试；这些在 Linux 
 
 本版审查修复
 - 在线仓库改为系统浏览器打开，下载后本地导入；过期 AOSP 入口禁用。
-- 手动安装独立于自动续签资格，支持 generation、多配置及自定义 XML 目标。
+- 手动安装独立于自动续签资格，支持 generation、多配置及自定义目标文件名。
   需要 TEESimulator code>=75 的日志协议；其他配置文件保持原样。
 - 首次安装支持原文件不存在；若此时替换失败，没有旧证书可加载，明确要求检查运行状态。
 - 未完成事务可独立恢复，不需开启续签；暂停时保留原诊断。
 - 导出验证证书签名、有效期和 CA 约束；默认 Google 端点验证固定根公钥。
 - 本地导入有界读取，吊销列表整体 30 秒期限，下载错误隐藏完整 URL。
 - 高通设备 ID 操作隔离到 30 秒 worker；超时视为结果未知，不自动重试。
+- 无效或不支持协议的下载地址也不写入原始 URL；CLI 错误和落盘日志均有隐私回归测试。
+- 大写 .XML、无后缀和嵌套目标均可触发重载，并保留原配置内容。
