@@ -148,7 +148,8 @@
       "local_check_failed": "Local validation failed; manual review required",
       "manual_resume": "Manually resumed; existing cooldown still applies",
       "storage_review_required": "Owned-file inventory is full; inspect saved artifacts",
-      "pending_discarded": "Candidate discarded; request limits preserved"
+      "pending_discarded": "Candidate discarded; request limits preserved",
+      "rollback_absent_unconfirmed": "Original file was absent; file removed, runtime state needs checking"
     },
     "chooseProtocol": "Select a previously successful protocol",
     "saveProtocol": "Save interface",
@@ -161,6 +162,8 @@
       "certificate_invalid": "Local certificate validation failed",
       "storage_io_failed": "File I/O failed; check storage and access",
       "state_or_response_invalid": "Invalid state or response format"
-    }
+    },
+    "recover": "Recover interrupted replacement",
+    "recoverConfirm": "Restore the previous file without enabling renewal or contacting a certificate server. If there was no previous file, its absence is restored and runtime state still needs checking."
   }
 }

@@ -67,7 +67,11 @@
     "omkCompatibilityDescription": "Các bản OMK cũ yêu cầu cả EC và RSA trong keybox. Tệp chỉ có EC, như bản xuất RKP, cần hỗ trợ từ commit b12557c; nếu thiếu RSA, chuỗi RSA AOSP đi kèm sẽ được dùng. Không thể tự động xác minh bản đã cài có hỗ trợ hay không. Tiếp tục cài đặt?",
     "continueInstall": "Tiếp tục cài đặt",
     "loadConfirmed": "TEESimulator loading confirmed for this file.",
-    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately.",
+    "repoExternal": "Open the repository in your browser, download a keybox, then import it with Local.",
+    "openBrowser": "Open in browser",
+    "importDownloaded": "Import downloaded file",
+    "aospExpired": "Unavailable: the bundled AOSP EC certificate expired on 2026-01-08."
   },
   "policy": {
     "none": "Module đang hoạt động không có chính sách mặc định.",

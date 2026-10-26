@@ -31,6 +31,10 @@
   },
   "keybox": {
     "loadConfirmed": "TEESimulator loading confirmed for this file.",
-    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately.",
+    "repoExternal": "Open the repository in your browser, download a keybox, then import it with Local.",
+    "openBrowser": "Open in browser",
+    "importDownloaded": "Import downloaded file",
+    "aospExpired": "Unavailable: the bundled AOSP EC certificate expired on 2026-01-08."
   }
 }

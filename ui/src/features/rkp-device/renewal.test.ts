@@ -14,6 +14,7 @@ const status = {
   result: "disabled",
   blocked: false,
   pending: false,
+  recovery_required: false,
   target_supported: true,
   certificate_valid: true,
   expires_at: 1800000000000,

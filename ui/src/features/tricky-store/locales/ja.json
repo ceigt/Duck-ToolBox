@@ -67,7 +67,11 @@
     "omkCompatibilityDescription": "旧版 OMK では keybox に EC と RSA の両方が必要です。RKP のエクスポートなど EC のみのファイルには、コミット b12557c の対応を含むビルドが必要です。RSA がない場合は内蔵の AOSP RSA 証明書チェーンが使われます。現在のビルドの対応状況は自動確認できません。インストールを続けますか？",
     "continueInstall": "インストールを続行",
     "loadConfirmed": "TEESimulator loading confirmed for this file.",
-    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately.",
+    "repoExternal": "Open the repository in your browser, download a keybox, then import it with Local.",
+    "openBrowser": "Open in browser",
+    "importDownloaded": "Import downloaded file",
+    "aospExpired": "Unavailable: the bundled AOSP EC certificate expired on 2026-01-08."
   },
   "policy": {
     "none": "使用中のモジュールにはデフォルトのポリシーがありません。",

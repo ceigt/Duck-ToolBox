@@ -1,4 +1,4 @@
-Duck ToolBox v0.2.0-renewal.1 is a testing fork of upstream v0.2.0-Stable.
+Duck ToolBox v0.2.0-renewal.2 is a testing fork of upstream v0.2.0-Stable.
 
 - Adds opt-in RKP renewal inside the existing module, with selectable V2 / V1 AIDL / V1 native interfaces.
 - Checks expiry locally, renews within 24 hours of expiry, limits requests, and keeps pending certificates for retry without requesting again.
@@ -11,3 +11,5 @@ Arm64, root and supported TEESimulator configuration are required. Renewal is of
 Built and checked on GitHub Actions. This release has not been installed or tested on a phone; real automatic issuance and long-term operation still need device testing. CI uses synthetic certificates and contains no device keys.
 
 Install this ZIP as an update to duck-toolbox in your root manager and reboot. See LOCAL-RENEWAL.txt inside the ZIP for the Chinese guide, limits and rollback steps.
+
+Audit fixes: safe external repository browsing; manual import/recovery compatibility; complete issued-chain validation; bounded network and local reads; shared settings locks; private URL diagnostics; isolated Qualcomm worker. Existing device keys and settings are retained on update.

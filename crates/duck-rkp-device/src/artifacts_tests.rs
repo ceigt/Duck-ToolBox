@@ -14,7 +14,7 @@ use super::{
 fn self_signed() -> (P256SecretKey, Vec<u8>) {
     let pair = KeyPair::generate_for(&PKCS_ECDSA_P256_SHA256).unwrap();
     let secret = P256SecretKey::from_pkcs8_der(pair.serialized_der()).unwrap();
-    let certificate = CertificateParams::default().self_signed(&pair).unwrap();
+    let certificate = params("duck-self-signed").self_signed(&pair).unwrap();
     (secret, certificate.der().to_vec())
 }
 
@@ -32,10 +32,25 @@ fn pem_first_line(der: &[u8]) -> String {
 /// the same common name, which makes an issuer and its subject indistinguishable.
 fn params(common_name: &str) -> CertificateParams {
     let mut params = CertificateParams::default();
+    params.is_ca = rcgen::IsCa::Ca(rcgen::BasicConstraints::Unconstrained);
     let mut name = rcgen::DistinguishedName::new();
     name.push(rcgen::DnType::CommonName, common_name);
     params.distinguished_name = name;
     params
+}
+
+#[test]
+fn export_rejects_corrupted_signatures_and_untrusted_google_roots() {
+    let (secret, leaf, root) = two_level_chain();
+    let mut valid = leaf.clone();
+    valid.extend_from_slice(&root);
+    assert!(super::prepare(&secret, valid.clone(), "test").is_ok());
+    assert!(super::require_google_root(&valid).is_err());
+    let mut damaged = leaf;
+    let last = damaged.len() - 1;
+    damaged[last] ^= 1;
+    damaged.extend_from_slice(&root);
+    assert!(super::prepare(&secret, damaged, "test").is_err());
 }
 
 /// A root plus a leaf it issued, as the RKP server returns them.

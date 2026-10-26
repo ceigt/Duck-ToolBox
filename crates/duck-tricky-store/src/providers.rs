@@ -35,6 +35,11 @@ pub fn list(ctx: &Context) -> Result<Vec<KeyboxProvider>> {
 }
 
 pub fn save(ctx: &Context, providers: Vec<KeyboxProvider>) -> Result<Vec<KeyboxProvider>> {
+    let _lock = crate::config_lock::acquire_native(ctx)?;
+    save_locked(ctx, providers)
+}
+
+fn save_locked(ctx: &Context, providers: Vec<KeyboxProvider>) -> Result<Vec<KeyboxProvider>> {
     let providers = validated(providers)?;
     let mut state = State::load(&ctx.paths, &ctx.sysroot)?;
     state.providers = providers;
@@ -49,11 +54,13 @@ pub fn reset(ctx: &Context) -> Result<Vec<KeyboxProvider>> {
 /// Merges providers from an exported file; entries with the same name are replaced.
 pub fn import(ctx: &Context, device_path: &str) -> Result<Vec<KeyboxProvider>> {
     let host = ctx.sysroot.path(device_path);
-    let raw = std::fs::read_to_string(&host).with_context(|| format!("read {device_path}"))?;
+    let raw = duck_core::fs::read_regular_bounded(&host, 128 * 1024)?;
     import_content(ctx, &raw)
 }
 
 pub fn import_content(ctx: &Context, raw: &str) -> Result<Vec<KeyboxProvider>> {
+    anyhow::ensure!(raw.len() <= 128 * 1024, "provider input exceeds 128 KiB");
+    let _lock = crate::config_lock::acquire_native(ctx)?;
     let file: ExportFile = serde_json::from_str(raw).context("parse provider export")?;
     if file.metadata != EXPORT_METADATA {
         return Err(TrickyError::BackendRule("not a keybox provider export file".into()).into());
@@ -68,7 +75,7 @@ pub fn import_content(ctx: &Context, raw: &str) -> Result<Vec<KeyboxProvider>> {
             decode: entry.script,
         });
     }
-    save(ctx, merged)
+    save_locked(ctx, merged)
 }
 
 /// Writes the providers to `device_path`, or to the Download folder when omitted.

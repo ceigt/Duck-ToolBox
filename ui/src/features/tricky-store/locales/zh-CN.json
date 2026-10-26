@@ -67,7 +67,11 @@
     "omkCompatibilityDescription": "旧版 OMK 要求 keybox 同时包含 EC 和 RSA。仅含 EC 的文件（如 RKP 导出）需要包含 b12557c 提交的新版本；缺少 RSA 时会使用内置 AOSP RSA 证书链。无法自动确认当前版本是否支持，是否继续安装？",
     "continueInstall": "继续安装",
     "loadConfirmed": "已确认 TEESimulator 加载此文件。",
-    "loadUnchecked": "文件已写入；此后端未提供加载确认，请另行验证。"
+    "loadUnchecked": "文件已写入；此后端未提供加载确认，请另行验证。",
+    "repoExternal": "在系统浏览器打开仓库，下载后返回，通过“本地”导入。",
+    "openBrowser": "在浏览器打开",
+    "importDownloaded": "返回导入下载的文件",
+    "aospExpired": "不可安装：内置 AOSP EC 证书已于 2026 年 1 月 8 日到期。"
   },
   "policy": {
     "none": "当前模块没有默认策略。",

@@ -641,17 +641,18 @@ dependencies = [
 
 [[package]]
 name = "duck-core"
-version = "0.2.0-renewal.1"
+version = "0.2.0-renewal.2"
 dependencies = [
  "anyhow",
  "clap",
+ "libc",
  "serde",
  "serde_json",
 ]
 
 [[package]]
 name = "duck-device-ids"
-version = "0.2.0-renewal.1"
+version = "0.2.0-renewal.2"
 dependencies = [
  "anyhow",
  "ciborium",
@@ -669,7 +670,7 @@ dependencies = [
 
 [[package]]
 name = "duck-platform"
-version = "0.2.0-renewal.1"
+version = "0.2.0-renewal.2"
 dependencies = [
  "anyhow",
  "duck-core",
@@ -683,7 +684,7 @@ dependencies = [
 
 [[package]]
 name = "duck-play-integrity"
-version = "0.2.0-renewal.1"
+version = "0.2.0-renewal.2"
 dependencies = [
  "anyhow",
  "clap",
@@ -695,7 +696,7 @@ dependencies = [
 
 [[package]]
 name = "duck-rkp"
-version = "0.2.0-renewal.1"
+version = "0.2.0-renewal.2"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -731,7 +732,7 @@ dependencies = [
 
 [[package]]
 name = "duck-rkp-device"
-version = "0.2.0-renewal.1"
+version = "0.2.0-renewal.2"
 dependencies = [
  "anyhow",
  "base64ct",
@@ -761,7 +762,7 @@ dependencies = [
 
 [[package]]
 name = "duck-system"
-version = "0.2.0-renewal.1"
+version = "0.2.0-renewal.2"
 dependencies = [
  "anyhow",
  "clap",
@@ -776,7 +777,7 @@ dependencies = [
 
 [[package]]
 name = "duck-tee-attestation"
-version = "0.2.0-renewal.1"
+version = "0.2.0-renewal.2"
 dependencies = [
  "anyhow",
  "base64ct",
@@ -802,7 +803,7 @@ dependencies = [
 
 [[package]]
 name = "duck-tricky-store"
-version = "0.2.0-renewal.1"
+version = "0.2.0-renewal.2"
 dependencies = [
  "anyhow",
  "base64ct",
@@ -829,7 +830,7 @@ dependencies = [
 
 [[package]]
 name = "duckd"
-version = "0.2.0-renewal.1"
+version = "0.2.0-renewal.2"
 dependencies = [
  "anyhow",
  "clap",

@@ -31,7 +31,7 @@ const status = useQuery({
     ["issuing", "installing", "pending"].includes(query.state.data?.phase ?? "") ? 10000 : 60000,
 })
 const protocol = ref<RenewalProtocol>()
-const confirmation = ref<"enable" | "resume" | "discard">("enable")
+const confirmation = ref<"enable" | "resume" | "discard" | "recover">("enable")
 const confirmationLabel = computed(() => t(`renewal.${confirmation.value}`))
 const confirmOpen = ref(false)
 watch(
@@ -51,7 +51,9 @@ const protocolDirty = computed(
     (!status.data.value?.protocol_configured || protocol.value !== status.data.value.protocol),
 )
 const change = useMutation({
-  mutationFn: (action: "enable" | "protocol" | "disable" | "check" | "resume" | "discard") => {
+  mutationFn: (
+    action: "enable" | "protocol" | "disable" | "check" | "resume" | "discard" | "recover",
+  ) => {
     if (action !== "enable" && action !== "protocol") return renewalApi[action]()
     if (!protocol.value) throw new Error(t("renewal.chooseProtocol"))
     return action === "enable"
@@ -60,7 +62,7 @@ const change = useMutation({
   },
   onSuccess: (data: RenewalStatus) => client.setQueryData(queryKey, data),
 })
-function confirm(action: "enable" | "resume" | "discard") {
+function confirm(action: "enable" | "resume" | "discard" | "recover") {
   confirmation.value = action
   confirmOpen.value = true
 }
@@ -139,6 +141,13 @@ const rows = computed(() => {
         </div>
         <div class="flex flex-wrap gap-2">
           <Button
+            v-if="status.data.value.recovery_required"
+            variant="outline"
+            :disabled="change.isPending.value"
+            @click="confirm('recover')"
+            >{{ t("renewal.recover") }}</Button
+          >
+          <Button
             v-if="status.data.value.pending && status.data.value.phase !== 'installing'"
             variant="outline"
             :disabled="change.isPending.value"
@@ -173,7 +182,7 @@ const rows = computed(() => {
             {{ t("renewal.check") }}
           </Button>
           <Button
-            v-if="status.data.value.blocked"
+            v-if="status.data.value.blocked && !status.data.value.recovery_required"
             variant="outline"
             :disabled="change.isPending.value"
             @click="confirm('resume')"
@@ -191,11 +200,13 @@ const rows = computed(() => {
       :title="confirmationLabel"
       :confirm-label="confirmationLabel"
       :description="
-        confirmation === 'discard'
-          ? t('renewal.discardConfirm')
-          : confirmation === 'enable'
-            ? t('renewal.consent')
-            : t('renewal.resumeConsent')
+        confirmation === 'recover'
+          ? t('renewal.recoverConfirm')
+          : confirmation === 'discard'
+            ? t('renewal.discardConfirm')
+            : confirmation === 'enable'
+              ? t('renewal.consent')
+              : t('renewal.resumeConsent')
       "
       @confirm="change.mutate(confirmation)"
     />

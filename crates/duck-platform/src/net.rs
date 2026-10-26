@@ -47,34 +47,46 @@ pub fn is_web_url(url: &str) -> bool {
     reqwest::Url::parse(url).is_ok_and(|parsed| matches!(parsed.scheme(), "http" | "https"))
 }
 
+/// A download location may contain an access token in any URL component.
+pub fn redacted_url(value: &str) -> String {
+    reqwest::Url::parse(value)
+        .ok()
+        .and_then(|url| {
+            url.host_str()
+                .map(|host| format!("{}://{host}/[redacted]", url.scheme()))
+        })
+        .unwrap_or_else(|| "[invalid URL]".into())
+}
+
 /// Downloads `url`, failing on non-success statuses and bodies above `max_bytes`.
 pub async fn fetch_bytes(url: &str, max_bytes: usize) -> Result<Vec<u8>> {
+    let location = redacted_url(url);
     if !is_web_url(url) {
-        bail!("not an http(s) URL: {url}");
+        bail!("not an http(s) URL");
     }
     let mut response = http_client()?
         .get(url)
         .send()
         .await
-        .with_context(|| format!("request {url}"))?;
+        .map_err(|_| anyhow::anyhow!("request {location} failed"))?;
     let status = response.status();
     if !status.is_success() {
-        bail!("{url} returned HTTP {status}");
+        bail!("{location} returned HTTP {status}");
     }
     if response
         .content_length()
         .is_some_and(|length| length > max_bytes as u64)
     {
-        bail!("{url} is larger than {max_bytes} bytes");
+        bail!("{location} is larger than {max_bytes} bytes");
     }
     let mut body = Vec::new();
     while let Some(chunk) = response
         .chunk()
         .await
-        .with_context(|| format!("read {url}"))?
+        .map_err(|_| anyhow::anyhow!("read {location} failed"))?
     {
         if chunk.len() > max_bytes.saturating_sub(body.len()) {
-            bail!("{url} is larger than {max_bytes} bytes");
+            bail!("{location} is larger than {max_bytes} bytes");
         }
         body.extend_from_slice(&chunk);
     }
@@ -83,7 +95,7 @@ pub async fn fetch_bytes(url: &str, max_bytes: usize) -> Result<Vec<u8>> {
 
 pub async fn fetch_text(url: &str, max_bytes: usize) -> Result<String> {
     let bytes = fetch_bytes(url, max_bytes).await?;
-    String::from_utf8(bytes).with_context(|| format!("{url} is not UTF-8 text"))
+    String::from_utf8(bytes).with_context(|| format!("{} is not UTF-8 text", redacted_url(url)))
 }
 
 /// Tries each URL in order (e.g. a GitHub raw URL, then a mirror) and returns the first
@@ -102,6 +114,15 @@ pub async fn fetch_text_first(urls: &[String], max_bytes: usize) -> Result<(Stri
 #[cfg(test)]
 mod tests {
     use super::{embedded_rustls_config, is_web_url};
+
+    #[tokio::test]
+    async fn failed_download_never_reports_url_credentials() {
+        let url = "http://user:TEST_PASSWORD@127.0.0.1:1/TEST_PATH?token=TEST_TOKEN";
+        let message = format!("{:#}", super::fetch_bytes(url, 10).await.unwrap_err());
+        for secret in ["TEST_PASSWORD", "TEST_PATH", "TEST_TOKEN", "user:"] {
+            assert!(!message.contains(secret), "{message}");
+        }
+    }
 
     #[tokio::test]
     async fn chunked_body_without_content_length_stops_at_limit() {

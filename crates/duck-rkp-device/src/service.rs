@@ -131,7 +131,15 @@ impl Server for Google {
         csr: &'a [u8],
         challenge: &'a [u8],
     ) -> BoxFuture<'a, Result<Vec<Vec<u8>>>> {
-        Box::pin(async move { submit_csr(&self.client, csr, challenge, &self.server_url).await })
+        Box::pin(async move {
+            let chains = submit_csr(&self.client, csr, challenge, &self.server_url).await?;
+            if self.server_url == DEFAULT_SERVER_URL.trim_end_matches('/') {
+                for chain in &chains {
+                    artifacts::require_google_root(chain)?;
+                }
+            }
+            Ok(chains)
+        })
     }
 }
 

@@ -18,6 +18,7 @@ vi.mock("../renewal", () => ({
     disable: vi.fn(),
     check: vi.fn(),
     resume: vi.fn(),
+    recover: vi.fn(),
     discard: vi.fn(),
   },
 }))
@@ -33,6 +34,7 @@ const initial: RenewalStatus = {
   result: "disabled",
   blocked: false,
   pending: false,
+  recovery_required: false,
   target_supported: true,
   certificate_valid: true,
   expires_at: 1800000000000,
@@ -84,6 +86,20 @@ afterEach(() => {
 })
 
 describe("renewal opt-in", () => {
+  it("recovers an interrupted import while renewal is disabled", async () => {
+    const wrapper = panel(true, { enabled: false, phase: "installing", recovery_required: true })
+    vi.mocked(renewalApi.recover).mockResolvedValue({ ...initial, result: "rolled_back" })
+    await flushPromises()
+    const recover = wrapper.findAll("button").find((button) => button.text() === "renewal.recover")!
+    expect(recover.attributes("disabled")).toBeUndefined()
+    await recover.trigger("click")
+    wrapper.findComponent({ name: "ConfirmDialog" }).vm.$emit("confirm")
+    await flushPromises()
+    expect(renewalApi.recover).toHaveBeenCalledOnce()
+    expect(renewalApi.enable).not.toHaveBeenCalled()
+    expect(renewalApi.check).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
   it("initializes the selector when navigating back to a fresh cached status", async () => {
     const saved = { ...initial, protocol: "v1" as const, protocol_configured: true }
     const first = panel(true, saved)

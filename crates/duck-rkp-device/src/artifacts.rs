@@ -118,6 +118,15 @@ pub(crate) fn prepare(
         .map_err(|error| DeviceRkpError::InvalidCsr(format!("{error:#}")))?;
     ensure_chain_matches_key(&chain, secret_key)?;
     ensure_chain_is_linked(&chain)?;
+    duck_rkp::certificates::select_chain_for_p256(
+        std::slice::from_ref(&cert_chain_der),
+        secret_key.public_key().to_sec1_bytes().as_ref(),
+    )
+    .map_err(|_| {
+        DeviceRkpError::InvalidCsr(
+            "certificate signature, validity or CA constraints failed".into(),
+        )
+    })?;
     let chain = keybox_order(&chain)?;
 
     let device_id = device_id(manufacturer)?;
@@ -131,6 +140,28 @@ pub(crate) fn prepare(
         private_key_pem,
         cert_chain_der,
     })
+}
+
+/// Google endpoint responses must terminate at one of the bundled attestation root keys.
+pub(crate) fn require_google_root(chain_der: &[u8]) -> Result<()> {
+    let chain = keybox_order(&parse_der_cert_chain(chain_der)?)?;
+    let root = Certificate::from_der(&chain.last().context("missing root")?.der)?;
+    let public = root.tbs_certificate().subject_public_key_info().to_der()?;
+    for pem in include_str!("../../../module/renewal-roots.pem")
+        .split("-----BEGIN CERTIFICATE-----")
+        .skip(1)
+    {
+        let body = pem
+            .split("-----END CERTIFICATE-----")
+            .next()
+            .context("missing root PEM end")?;
+        let body: String = body.chars().filter(|c| !c.is_whitespace()).collect();
+        let pin = Certificate::from_der(&Base64::decode_vec(&body)?)?;
+        if pin.tbs_certificate().subject_public_key_info().to_der()? == public {
+            return Ok(());
+        }
+    }
+    bail!("certificate root is not a trusted Google attestation root")
 }
 
 impl Prepared {

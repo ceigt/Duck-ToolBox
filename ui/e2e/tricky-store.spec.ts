@@ -141,10 +141,9 @@ test.describe("keybox", () => {
     expect(calls).toBe(0)
   })
 
-  test("installs the AOSP keybox", async ({ page, open }) => {
+  test("disables the expired bundled AOSP keybox", async ({ page, open }) => {
     await open("/tricky-store/keybox")
-    await page.getByRole("button", { name: /AOSP/ }).click()
-    await expect(page.getByText("AOSP keybox set successfully")).toBeVisible()
+    await expect(page.getByRole("button", { name: /AOSP/ })).toBeDisabled()
   })
 
   test("warns before OMK provider installs and lets the user cancel", async ({ page, open }) => {
@@ -167,8 +166,7 @@ test.describe("keybox", () => {
     open,
   }) => {
     await open("/tricky-store/keybox", { query: { backend: "oh-my-keymint" } })
-    await page.getByRole("button", { name: /AOSP/ }).click()
-    await expect(page.getByText("AOSP keybox set successfully")).toBeVisible()
+    await expect(page.getByRole("button", { name: /AOSP/ })).toBeDisabled()
     await expect(page.getByRole("alertdialog")).toBeHidden()
     await page.getByRole("button", { name: /Local/ }).click()
     await page
@@ -214,74 +212,18 @@ test.describe("keybox", () => {
 })
 
 test.describe("keybox repository", () => {
-  // A stand-in for keybox.kowx712.cc that speaks Tricky Addon's repo-api.md protocol.
-  const site = (reply: string) => `<!doctype html><script>
-    addEventListener("message", (event) => {
-      if (event.data?.type !== "handshake") return
-      event.source.postMessage({ type: "handshake_ack" }, event.origin)
-      setTimeout(() => event.source.postMessage(${reply}, event.origin), 100)
+  test("keeps remote scripts outside the root WebView", async ({ page, open }) => {
+    let remote = 0
+    await page.route("https://keybox.kowx712.cc/**", (route) => {
+      remote++
+      return route.abort()
     })
-  </script>`
-
-  test("installs the keybox the site hands over after the handshake", async ({ page, open }) => {
-    await page.route("https://keybox.kowx712.cc/**", (route) =>
-      route.fulfill({
-        contentType: "text/html",
-        body: site(`{ type: "download", url: "https://keybox.kowx712.cc/api/kb/1" }`),
-      }),
-    )
     await open("/tricky-store/keybox/repo")
-    await expect(page.getByText("Keybox set from repo successfully")).toBeVisible()
+    await expect(page.locator("iframe")).toHaveCount(0)
+    await expect(page.getByRole("button", { name: "Open in browser", exact: true })).toBeVisible()
+    await page.getByRole("button", { name: "Import downloaded file", exact: true }).click()
     await expect(page).toHaveURL(/#\/tricky-store\/keybox$/)
-  })
-
-  test("keeps the OMK compatibility dialog open until the repository install is confirmed", async ({
-    page,
-    open,
-  }) => {
-    await page.route("https://keybox.kowx712.cc/**", (route) =>
-      route.fulfill({
-        contentType: "text/html",
-        body: site(`{ type: "download", url: "https://keybox.kowx712.cc/api/kb/1" }`),
-      }),
-    )
-    await open("/tricky-store/keybox/repo", { query: { backend: "oh-my-keymint" } })
-    const dialog = page.getByRole("alertdialog")
-    await expect(dialog.getByText("OMK keybox compatibility", { exact: true })).toBeVisible()
-    await expect(page).toHaveURL(/#\/tricky-store\/keybox\/repo$/)
-    await dialog.getByRole("button", { name: "Continue installation", exact: true }).click()
-    await expect(page.getByText("Keybox set from repo successfully")).toBeVisible()
-    await expect(page).toHaveURL(/#\/tricky-store\/keybox$/)
-  })
-
-  test("reports a download the site could not serve", async ({ page, open }) => {
-    await page.route("https://keybox.kowx712.cc/**", (route) =>
-      route.fulfill({
-        contentType: "text/html",
-        body: site(`{ type: "error", error: "download_failed", identity: "Pixel-42" }`),
-      }),
-    )
-    await open("/tricky-store/keybox/repo")
-    await expect(page.getByText("Download failed for Pixel-42")).toBeVisible()
-  })
-
-  test("returns to keybox management when a repository keybox fails to download", async ({
-    page,
-    open,
-  }) => {
-    await page.route("https://keybox.kowx712.cc/**", (route) =>
-      route.fulfill({
-        contentType: "text/html",
-        body: site(`{ type: "download", url: "https://keybox.kowx712.cc/api/fail" }`),
-      }),
-    )
-    await open("/tricky-store/keybox/repo", { query: { backend: "oh-my-keymint" } })
-    await page
-      .getByRole("alertdialog")
-      .getByRole("button", { name: "Continue installation", exact: true })
-      .click()
-    await expect(page.getByText("Failed to set keybox from repo", { exact: true })).toBeVisible()
-    await expect(page).toHaveURL(/#\/tricky-store\/keybox$/)
+    expect(remote).toBe(0)
   })
 })
 

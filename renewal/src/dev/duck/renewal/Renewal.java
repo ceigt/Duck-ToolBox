@@ -14,11 +14,13 @@ final class Renewal {
     interface Platform {
         long now();
         boolean supported() throws Exception;
+        default boolean manualSupported() throws Exception { return supported(); }
         boolean online() throws Exception;
         JSONObject issue(String protocol) throws Exception;
         JSONObject revocations() throws Exception;
         Object cursor() throws Exception;
         boolean accepted(String id, Object cursor) throws Exception;
+        default void reload(Path changed) throws Exception { }
     }
     final Path root, outputs, target;
     final Set<String> pins;
@@ -58,7 +60,8 @@ final class Renewal {
                 .put("last_success", state.optLong("last_success"))
                 .put("retry_after", state.optLong("retry_after"))
                 .put("check_hours", 6).put("lead_hours", 24)
-                .put("pending", state.has("pending")).put("target_supported", platform.supported());
+                .put("pending", state.has("pending")).put("recovery_required", state.has("transaction"))
+                .put("target_supported", platform.supported());
         try {
             long expires = StatusCache.expires(root, target, pins, platform.now());
             result.put("expires_at", expires).put("remaining_seconds", (expires - platform.now()) / 1000)
@@ -77,7 +80,7 @@ final class Renewal {
             state = load(); return status();
         }
         if ("status".equals(command)) return status();
-        if (!Arrays.asList("enable", "protocol", "tick", "resume", "discard", "install").contains(command)) throw new IOException("unknown_command");
+        if (!Arrays.asList("enable", "protocol", "tick", "resume", "recover", "discard", "install").contains(command)) throw new IOException("unknown_command");
         mkdir(root);
         Path lockPath = root.resolve("operation.lock"); Keybox.safePath(lockPath);
         try (FileChannel channel = FileChannel.open(lockPath, StandardOpenOption.CREATE,
@@ -90,6 +93,9 @@ final class Renewal {
                 state = load();
                 if ("install".equals(command)) {
                     installManual(protocol.getBytes(StandardCharsets.UTF_8));
+                } else if ("recover".equals(command)) {
+                    if (!state.has("transaction")) throw new IOException("rollback_required");
+                    recover();
                 } else if ("protocol".equals(command)) {
                     if (!Arrays.asList("v2", "v1", "v1-native").contains(protocol)) throw new IOException("protocol_required");
                     if (!"idle".equals(state.optString("phase")) || state.has("pending"))
@@ -117,6 +123,7 @@ final class Renewal {
                         state.put("attempts", corrected).put("last_check", now)
                                 .put("retry_after", now + LEAD);
                     }
+                    state.remove("diagnostic"); state.remove("diagnostic_phase");
                     state.put("blocked", false).put("result", "manual_resume");
                     if ("issuing".equals(state.optString("phase"))) state.put("phase", "idle");
                     // Preserve the request count/cooldown even after manual acknowledgement.
@@ -131,7 +138,6 @@ final class Renewal {
                     state.put("phase", "idle").put("blocked", false).put("result", "pending_discarded");
                     save();
                 } else {
-                    state.remove("diagnostic"); state.remove("diagnostic_phase");
                     try { tick(); }
                     catch (Exception failure) {
                         state.put("diagnostic", Diagnostics.code(failure))
@@ -163,6 +169,7 @@ final class Renewal {
         }
         if (!enabled()) return;
         if (state.optBoolean("blocked")) return;
+        state.remove("diagnostic"); state.remove("diagnostic_phase");
         if (now < 1735689600000L || now + 300000L < state.optLong("last_check")) {
             state.put("blocked", true).put("result", "clock_invalid"); save(); return;
         }
@@ -276,17 +283,32 @@ final class Renewal {
     /** A crash anywhere after recording a transaction restores the previous exact bytes. */
     private void recover() throws Exception {
         JSONObject transaction = state.getJSONObject("transaction");
+        Path restoreTarget = Paths.get(transaction.optString("target", target.toString()));
+        Keybox.safePath(restoreTarget);
+        if (!restoreTarget.startsWith(target.getParent())) throw new IOException("unowned_backup");
+        String live = Files.exists(restoreTarget, LinkOption.NOFOLLOW_LINKS)
+                ? Keybox.sha256(Keybox.readFile(restoreTarget, 128 * 1024)) : "";
+        if (!transaction.optBoolean("old_exists", true)) {
+            if (!live.isEmpty() && !live.equals(transaction.getString("new_hash"))) {
+                state.put("blocked", true).put("result", "target_changed"); save(); return;
+            }
+            Files.deleteIfExists(restoreTarget);
+            // There was no old certificate to reload. Never claim runtime rollback proof.
+            state.remove("transaction");
+            state.put("phase", "idle").put("blocked", true).put("result", "rollback_absent_unconfirmed");
+            save(); return;
+        }
         Path backup = Paths.get(transaction.getString("backup"));
         ownedBackup(backup);
         byte[] old = Keybox.readFile(backup, 128 * 1024);
         if (!Keybox.sha256(old).equals(transaction.getString("old_hash"))) throw new IOException("backup_changed");
-        String live = Keybox.sha256(Keybox.readFile(target, 128 * 1024));
         if (!live.equals(transaction.getString("new_hash")) && !live.equals(transaction.getString("old_hash"))) {
             state.put("blocked", true).put("result", "target_changed"); save(); return;
         }
         String previousId = Keybox.runtimeId(old);
         Object cursor = platform.cursor();
-        atomic(target, old);
+        atomic(restoreTarget, old);
+        platform.reload(restoreTarget);
         boolean confirmed = platform.accepted(previousId, cursor);
         state.put("blocked", true).put("result", confirmed ? "rolled_back" : "rollback_unconfirmed");
         if (confirmed) { state.put("phase", state.has("pending") ? "pending" : "idle"); state.remove("transaction"); }
@@ -295,22 +317,28 @@ final class Renewal {
 
     private void installManual(byte[] xml) throws Exception {
         if (state.has("transaction") || "issuing".equals(state.optString("phase"))) throw new IOException("rollback_required");
-        if (!platform.supported()) throw new IOException("target_unsupported");
+        if (!platform.manualSupported()) throw new IOException("target_unsupported");
         ManualKeybox.validate(xml, platform.now());
+        mkdir(target.getParent());
         // Every Duck TEESimulator writer enters through this same FileLock/transaction.
-        byte[] old = Keybox.readFile(target, 128 * 1024);
-        String oldHash = Keybox.sha256(old), nextHash = Keybox.sha256(xml);
+        boolean existed = Files.exists(target, LinkOption.NOFOLLOW_LINKS);
+        byte[] old = existed ? Keybox.readFile(target, 128 * 1024) : null;
+        String oldHash = existed ? Keybox.sha256(old) : "", nextHash = Keybox.sha256(xml);
         Path backup = root.resolve("backups").resolve(UUID.randomUUID().toString() + ".xml");
-        mkdir(backup.getParent()); atomic(backup, old);
-        state.put("manual_backup", backup.toString());
+        if (existed) { mkdir(backup.getParent()); atomic(backup, old); }
+        state.put("manual_backup", existed ? backup.toString() : "");
         state.put("transaction", new JSONObject().put("backup", backup.toString())
-                .put("old_hash", oldHash).put("new_hash", nextHash).put("kind", "manual"));
+                .put("old_hash", oldHash).put("old_exists", existed).put("target", target.toString())
+                .put("new_hash", nextHash).put("kind", "manual"));
         state.put("phase", "installing").put("result", "installing"); save();
         try {
             Object cursor = platform.cursor();
-            if (!Keybox.sha256(Keybox.readFile(target, 128 * 1024)).equals(oldHash)) throw new IOException("target_changed");
+            String live = Files.exists(target, LinkOption.NOFOLLOW_LINKS)
+                    ? Keybox.sha256(Keybox.readFile(target, 128 * 1024)) : "";
+            if (!live.equals(oldHash)) throw new IOException("target_changed");
             atomic(target, xml);
-            if (!platform.accepted(Keybox.runtimeId(xml), cursor) || !platform.supported()
+            platform.reload(target);
+            if (!platform.accepted(Keybox.runtimeId(xml), cursor) || !platform.manualSupported()
                     || !Keybox.sha256(Keybox.readFile(target, 128 * 1024)).equals(nextHash)) {
                 recover(); return;
             }

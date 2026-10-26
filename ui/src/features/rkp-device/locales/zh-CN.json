@@ -148,7 +148,8 @@
       "local_check_failed": "本地验证失败，请人工核对",
       "manual_resume": "已人工解除暂停，仍遵守冷却时间",
       "storage_review_required": "本功能文件记录已满，请检查历史产物",
-      "pending_discarded": "已放弃候选证书，保留限频"
+      "pending_discarded": "已放弃候选证书，保留限频",
+      "rollback_absent_unconfirmed": "原文件不存在，已删除新文件；运行状态仍需检查"
     },
     "chooseProtocol": "请选择已成功的签发接口",
     "saveProtocol": "保存接口",
@@ -161,6 +162,8 @@
       "certificate_invalid": "本地证书验证失败",
       "storage_io_failed": "文件读写失败，请检查空间及权限",
       "state_or_response_invalid": "状态或返回数据格式错误"
-    }
+    },
+    "recover": "恢复未完成的替换",
+    "recoverConfirm": "恢复原文件，不开启续签或请求证书。若原文件不存在，则恢复原来的缺失状态，运行状态仍需检查。"
   }
 }

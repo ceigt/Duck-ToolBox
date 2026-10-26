@@ -12,6 +12,7 @@ export const renewalSchema = z.object({
   result: z.string(),
   blocked: z.boolean(),
   pending: z.boolean(),
+  recovery_required: z.boolean().default(false),
   target_supported: z.boolean(),
   certificate_valid: z.boolean(),
   expires_at: z.number().nullable(),
@@ -35,6 +36,7 @@ export const renewalApi = {
   disable: () => duckd(["renewal", "disable"], { schema: renewalSchema }),
   check: () => duckd(["renewal", "check"], { schema: renewalSchema }),
   discard: () => duckd(["renewal", "discard"], { schema: renewalSchema }),
+  recover: () => duckd(["renewal", "recover"], { schema: renewalSchema }),
   resume: () => duckd(["renewal", "resume"], { schema: renewalSchema }),
 }
 

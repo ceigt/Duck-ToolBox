@@ -11,14 +11,12 @@ use std::{
 
 pub(super) fn install(ctx: &Context, target: &str, content: &str) -> Result<Option<PathBuf>> {
     // The helper owns the FileLock, durable backup, swap, loader proof and rollback.
-    if target != "/data/adb/teesim/keybox.xml" {
-        bail!("TEESimulator transactional install requires the default keybox path");
-    }
     let mut child = Command::new("/system/bin/app_process")
         .args(["/", "dev.duck.renewal.Main"])
         .arg(&ctx.paths.root)
         .arg(&ctx.paths.data_root)
         .arg("install")
+        .arg(target)
         .env("CLASSPATH", ctx.paths.root.join("bin/duck-renewal.dex"))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -53,9 +51,8 @@ pub(super) fn install(ctx: &Context, target: &str, content: &str) -> Result<Opti
     if response["data"]["result"] != "manual_installed" {
         bail!("keybox load not confirmed; inspect renewal rollback status");
     }
-    let backup = response["data"]["backup_path"]
+    Ok(response["data"]["backup_path"]
         .as_str()
         .filter(|p| !p.is_empty())
-        .ok_or_else(|| anyhow::anyhow!("backup receipt missing"))?;
-    Ok(Some(PathBuf::from(backup)))
+        .map(PathBuf::from))
 }

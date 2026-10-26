@@ -67,7 +67,11 @@
     "omkCompatibilityDescription": "Las versiones antiguas de OMK requieren EC y RSA en el keybox. Los archivos solo EC, como las exportaciones RKP, necesitan el soporte del commit b12557c; si falta RSA, se usa la cadena RSA de AOSP incluida. No se puede verificar automáticamente si la versión instalada lo admite. ¿Continuar con la instalación?",
     "continueInstall": "Continuar instalación",
     "loadConfirmed": "TEESimulator loading confirmed for this file.",
-    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately.",
+    "repoExternal": "Open the repository in your browser, download a keybox, then import it with Local.",
+    "openBrowser": "Open in browser",
+    "importDownloaded": "Import downloaded file",
+    "aospExpired": "Unavailable: the bundled AOSP EC certificate expired on 2026-01-08."
   },
   "policy": {
     "none": "El módulo activo no tiene política predeterminada.",

@@ -14,7 +14,6 @@ use rcgen::{
     CertificateParams, KeyPair as RcgenKeyPair, PKCS_ECDSA_P256_SHA256, PublicKeyData,
     SignatureAlgorithm,
 };
-use sha2::{Digest as _, Sha256};
 
 use super::{DeviceEnvironment, Environment, Exchange, KeySource, Options, Server, provision};
 use crate::{protocol, status::DeviceStatus};
@@ -166,8 +165,8 @@ impl rcgen::SigningKey for TestSigner {
     fn sign(&self, msg: &[u8]) -> Result<Vec<u8>, rcgen::Error> {
         use p256::ecdsa::signature::Signer as _;
 
-        let signature: p256::ecdsa::Signature = self.key.sign(&Sha256::digest(msg));
-        Ok(signature.to_bytes().to_vec())
+        let signature: p256::ecdsa::Signature = self.key.sign(msg);
+        Ok(signature.to_der().as_bytes().to_vec())
     }
 }
 
@@ -189,6 +188,7 @@ fn issued_chain(signer: &TestSigner) -> Vec<u8> {
 /// Parameters with a real subject name, so an issuer and its subject differ.
 fn named_params(common_name: &str) -> CertificateParams {
     let mut params = CertificateParams::default();
+    params.is_ca = rcgen::IsCa::Ca(rcgen::BasicConstraints::Unconstrained);
     let mut name = rcgen::DistinguishedName::new();
     name.push(rcgen::DnType::CommonName, common_name);
     params.distinguished_name = name;

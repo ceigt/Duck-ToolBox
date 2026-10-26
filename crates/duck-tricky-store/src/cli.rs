@@ -1,4 +1,4 @@
-use std::io::{self, Read};
+use std::io;
 
 use anyhow::{Context as _, Result};
 use clap::{Args, Subcommand};
@@ -265,8 +265,7 @@ async fn apps_command(command: AppsCommand, ctx: &Context) -> CommandResult {
 
 fn install_local(ctx: &Context, source: &str) -> Result<keybox::KeyboxInstallData> {
     let host = ctx.sysroot.path(source.trim());
-    let content =
-        std::fs::read_to_string(&host).with_context(|| format!("read keybox {source}"))?;
+    let content = duck_core::fs::read_regular_bounded(&host, 128 * 1024)?;
     keybox::install(ctx, &content, "local")
 }
 
@@ -282,9 +281,7 @@ async fn fetch(ctx: &Context, args: &FetchArgs) -> Result<keybox::KeyboxInstallD
 
 fn read_stdin_json<T: DeserializeOwned>(stdin_json: bool) -> Result<T> {
     anyhow::ensure!(stdin_json, "this command requires `--stdin-json`");
-    let mut input = String::new();
-    io::stdin()
-        .read_to_string(&mut input)
-        .context("read JSON from stdin")?;
+    let input =
+        duck_core::fs::read_bounded(io::stdin(), 512 * 1024).context("read JSON from stdin")?;
     serde_json::from_str(&input).context("parse JSON from stdin")
 }

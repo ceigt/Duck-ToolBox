@@ -13,6 +13,7 @@ const renewal: RenewalStatus = {
   result: "disabled",
   blocked: false,
   pending: false,
+  recovery_required: false,
   target_supported: true,
   certificate_valid: true,
   expires_at: Date.now() + 7 * 86400000,

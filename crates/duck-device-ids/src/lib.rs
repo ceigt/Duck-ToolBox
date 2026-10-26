@@ -20,6 +20,7 @@ mod plan;
 mod plan_tests;
 #[allow(unsafe_code)]
 mod qseecom;
+mod qseecom_worker;
 mod report;
 mod spec;
 mod trustkernel;
@@ -176,16 +177,20 @@ pub fn provision(
     } else {
         match &plan.request {
             plan::Request::Qseecom { command } => {
-                qseecom::provision(&resolved.ta_path, &resolved.ta_name, command).map(|info| {
-                    session = info;
-                })
+                qseecom_worker::provision(ctx, &resolved.ta_path, &resolved.ta_name, command).map(
+                    |info| {
+                        session = info;
+                    },
+                )
             }
             plan::Request::Trustkernel { items } => {
                 trustkernel::provision(ctx, items, &mut session)
             }
         }
     };
-    let status = if execution.is_err() {
+    let status = if execution.is_err() && backend == Backend::Qseecom {
+        "outcome_unknown"
+    } else if execution.is_err() {
         "failed"
     } else if resolved.dry_run {
         "dry_run"

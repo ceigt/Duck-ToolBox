@@ -12,8 +12,9 @@ import org.json.*;
 
 /** app_process boundary; public commands return a redacted Duck envelope. */
 public final class Main implements Renewal.Platform {
-    static final String VERSION = "0.2.0-renewal.1";
+    static final String VERSION = "0.2.0-renewal.2";
     final Path module, data, tee;
+    Path installTarget;
     Object context;
     Main(Path module, Path data, Path tee) { this.module = module; this.data = data; this.tee = tee; }
 
@@ -33,6 +34,29 @@ public final class Main implements Renewal.Platform {
         if (profiles.length() != 1 || !profiles.has("default")) return false;
         JSONObject profile = profiles.getJSONObject("default");
         return "keybox.xml".equals(profile.optString("keybox")) && "patch".equals(profile.optString("mode"));
+    }
+
+    @Override public boolean manualSupported() throws Exception {
+        Path teeModule = Paths.get("/data/adb/modules/teesim");
+        if (!Files.isDirectory(teeModule) || Files.exists(teeModule.resolve("disable"))
+                || Files.exists(teeModule.resolve("remove")) || Files.exists(module.resolve("disable"))
+                || Files.exists(module.resolve("remove"))) return false;
+        Properties properties = new Properties();
+        properties.load(new ByteArrayInputStream(Keybox.readFile(teeModule.resolve("module.prop"), 16 * 1024)));
+        return Integer.parseInt(properties.getProperty("versionCode", "0")) >= 75
+                && TeeConfig.manualTarget(tee, installTarget, config());
+    }
+
+    JSONObject config() throws Exception {
+        return new JSONObject(new String(Keybox.readFile(tee.resolve("config.json"), 256 * 1024), StandardCharsets.UTF_8));
+    }
+
+    @Override public void reload(Path changed) throws Exception {
+        // TEESimulator observes only its top-level directory, not nested keybox folders.
+        if (!changed.getParent().equals(tee)) {
+            Path path = tee.resolve("config.json");
+            Renewal.atomic(path, Keybox.readFile(path, 256 * 1024));
+        }
     }
 
     @Override public boolean online() {
@@ -95,9 +119,13 @@ public final class Main implements Renewal.Platform {
     @Override public JSONObject revocations() throws Exception {
         // Public full list; no certificate identifier, device ID or key is sent in the URL/body.
         HttpURLConnection connection = (HttpURLConnection) new URL("https://android.googleapis.com/attestation/status").openConnection();
+        return readRevocations(connection, 30000);
+    }
+
+    static JSONObject readRevocations(HttpURLConnection connection, long timeoutMillis) throws Exception {
         connection.setConnectTimeout(15000); connection.setReadTimeout(15000);
         connection.setInstanceFollowRedirects(false);
-        try {
+        java.util.concurrent.FutureTask<JSONObject> request = new java.util.concurrent.FutureTask<>(() -> {
             if (connection.getResponseCode() != 200) throw new IOException("revocation_unavailable");
             try (InputStream input = connection.getInputStream(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
                 byte[] buffer = new byte[8192]; int n;
@@ -107,24 +135,30 @@ public final class Main implements Renewal.Platform {
                 }
                 return new JSONObject(new String(output.toByteArray(), StandardCharsets.UTF_8));
             }
-        } finally { connection.disconnect(); }
+        });
+        Thread worker = new Thread(request, "renewal-revocations"); worker.setDaemon(true); worker.start();
+        try { return request.get(timeoutMillis, TimeUnit.MILLISECONDS); }
+        finally { connection.disconnect(); request.cancel(true); }
     }
 
     static final class Cursor {
-        final Object key; final long size;
-        Cursor(Object key, long size) { this.key = key; this.size = size; }
+        final Object key; final long size; final String configHash;
+        Cursor(Object key, long size, String configHash) { this.key = key; this.size = size; this.configHash = configHash; }
     }
     @Override public Object cursor() throws Exception {
         Path log = tee.resolve("log/teesim.log"); Keybox.safePath(log);
         if (!Files.exists(log)) throw new IOException("unsafe_log");
         BasicFileAttributes attrs = Files.readAttributes(log, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
         if (!attrs.isRegularFile()) throw new IOException("unsafe_log");
-        return new Cursor(attrs.fileKey(), attrs.size());
+        return new Cursor(attrs.fileKey(), attrs.size(), Keybox.sha256(Keybox.readFile(tee.resolve("config.json"), 256 * 1024)));
     }
 
     static boolean hasAck(String log, String id) { return LoadProof.accepted(log, id); }
     @Override public boolean accepted(String id, Object value) throws Exception {
         Cursor cursor = (Cursor) value;
+        JSONObject expectedConfig = config();
+        if (!cursor.configHash.equals(Keybox.sha256(Keybox.readFile(tee.resolve("config.json"), 256 * 1024)))) return false;
+        Map<String, String> expected = TeeConfig.proof(tee, expectedConfig);
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(45);
         Path log = tee.resolve("log/teesim.log");
         do {
@@ -137,7 +171,9 @@ public final class Main implements Renewal.Platform {
                 try (RandomAccessFile file = new RandomAccessFile(log.toFile(), "r")) {
                     file.seek(start); byte[] tail = new byte[(int) Math.min(512 * 1024, Math.max(0, file.length() - start))];
                     file.readFully(tail);
-                    if (hasAck(new String(tail, StandardCharsets.UTF_8), id)) return true;
+                    if (LoadProof.accepted(new String(tail, StandardCharsets.UTF_8), expected)
+                            && expected.values().stream().anyMatch(p -> p.endsWith("\0" + id))
+                            && cursor.configHash.equals(Keybox.sha256(Keybox.readFile(tee.resolve("config.json"), 256 * 1024)))) return true;
                 }
             }
             Thread.sleep(500);
@@ -154,8 +190,10 @@ public final class Main implements Renewal.Platform {
             Keybox.safePath(module); Keybox.safePath(data);
             if ("config-lease".equals(command)) { ConfigLease.hold(data, System.in, System.out); return; }
             Main platform = new Main(module, data, Paths.get("/data/adb/teesim"));
+            platform.installTarget = "install".equals(command) && args.length == 4
+                    ? Paths.get(args[3]) : platform.tee.resolve("keybox.xml");
             Renewal renewal = new Renewal(data.resolve("var/renewal"), data.resolve("var/outputs"),
-                    platform.tee.resolve("keybox.xml"), Keybox.pins(module.resolve("renewal-roots.pem")), platform);
+                    platform.installTarget, Keybox.pins(module.resolve("renewal-roots.pem")), platform);
             String argument = args.length == 4 ? args[3] : "";
             if ("install".equals(command)) {
                 Capture input = new Capture(System.in, 128 * 1024, false); input.run();

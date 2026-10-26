@@ -1,4 +1,4 @@
-Duck ToolBox 0.2.0-renewal.1 — Fork 测试版
+Duck ToolBox 0.2.0-renewal.2 — Fork 测试版
 原项目：https://github.com/eltavine/Duck-ToolBox/tree/v0.2.0-Stable
 原作者：Eltavine、KOW、MhmRdd；原 MIT 许可保留于 LICENSE。
 Fork 源码与构建：https://github.com/ceigt/Duck-ToolBox
@@ -85,7 +85,8 @@ Fork 源码与构建：https://github.com/ceigt/Duck-ToolBox
 - GitHub Actions 运行原生后端、前端、模块脚本、独立引擎和续签合成数据测试。
   每个安装包的构建与测试结果见对应 Actions 运行记录。
 - 续签后台使用临时合成证书进行离线测试；CI 不连接手机或 Google 进行签发。
-- 新版安装包尚未实机验证，真实到期自动续签和跨周运行仍需用户后续测试。
+- 前版已于 2026-10-26 完成安装、重启、当前证书与完整性检查；
+  本版修复需重新安装验证。真实到期自动续签和跨周运行仍待后续测试。
 - 从旧版迁移会保留续签状态及 TEESimulator 配置；一加 Ace 3 的
   ace3 attestation product correction 模块仍应保持启用。
 
@@ -145,3 +146,13 @@ ui/src/features/rkp-device：面板、接口与中英文文字；其他语言沿
 RSA-1024 仅保留旧软件证明材料的一致性验证，不用于生成或推荐新证书。
 Windows 不能直接运行 Android/Unix 专用的原生测试；这些在 Linux CI 中保留。
 具体执行结果见对应版本的 GitHub Actions 记录。
+
+本版审查修复
+- 在线仓库改为系统浏览器打开，下载后本地导入；过期 AOSP 入口禁用。
+- 手动安装独立于自动续签资格，支持 generation、多配置及自定义 XML 目标。
+  需要 TEESimulator code>=75 的日志协议；其他配置文件保持原样。
+- 首次安装支持原文件不存在；若此时替换失败，没有旧证书可加载，明确要求检查运行状态。
+- 未完成事务可独立恢复，不需开启续签；暂停时保留原诊断。
+- 导出验证证书签名、有效期和 CA 约束；默认 Google 端点验证固定根公钥。
+- 本地导入有界读取，吊销列表整体 30 秒期限，下载错误隐藏完整 URL。
+- 高通设备 ID 操作隔离到 30 秒 worker；超时视为结果未知，不自动重试。

@@ -10,7 +10,7 @@ changed, removed or added on its own.
 
 - **Play Integrity**: an independently built GPLv3 engine derived from Play Integrity Fork,
   with configuration previews, migration, fingerprint generation, compatibility settings and
-  diagnostics in the WebUI. It is enabled by default; injection requires Zygisk and a saved
+  diagnostics in the WebUI. In this renewal fork it is disabled on a fresh install; injection requires Zygisk and a saved
   nonempty configuration. Full-mode global scripts also wait for configuration; explicitly
   selected scripts-only mode can run without a fingerprint. A separate stop control works
   during tasks, invalid configuration and pending recovery; configuration is retained. The management code remains MIT; see [licensing boundaries](THIRD_PARTY_NOTICES.md).
@@ -28,8 +28,7 @@ changed, removed or added on its own.
   - Mode sheet on long press, and per-app policy.
   - Actions: select from DenyList (Magisk), deselect unnecessary apps (online list plus
     Xposed modules), add system apps, auto-add new apps.
-  - Keyboxes from AOSP, generated "unknown", a local file, the keybox repository (the same
-    iframe protocol) or custom providers (add, edit, remove, reset, import, export).
+  - Keyboxes from generated "unknown", a local file, the keybox repository (external browser download followed by local import) or custom providers (add, edit, remove, reset, import, export).
   - Prop handler and Verified Boot hash, schema-driven default policy with *Today*, help.
   - Keyboard shortcuts (Ctrl+A/D/F/S, Esc), the back gesture closing dialogs, and upstream's
     23 translations, including right-to-left languages.

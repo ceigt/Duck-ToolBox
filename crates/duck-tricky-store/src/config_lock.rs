@@ -41,6 +41,8 @@ mod tests {
             sysroot: duck_core::Sysroot::new(root.path()),
         };
         let first = super::acquire(&ctx).unwrap();
+        assert!(crate::providers::save(&ctx, vec![]).is_err());
+        assert!(crate::entry::set(&ctx, false).is_err());
         let inherited = first.0.try_clone().unwrap();
         assert!(super::acquire(&ctx).is_err());
         drop(first);

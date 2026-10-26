@@ -45,6 +45,7 @@ pub fn status(ctx: &Context) -> Result<EntryStatus> {
 }
 
 pub fn set(ctx: &Context, enabled: bool) -> Result<EntryStatus> {
+    let _lock = crate::config_lock::acquire_native(ctx)?;
     let mut state = State::load(&ctx.paths, &ctx.sysroot)?;
     state.entry_enabled = enabled;
     if enabled {
@@ -60,6 +61,7 @@ pub fn set(ctx: &Context, enabled: bool) -> Result<EntryStatus> {
 /// Re-creates or removes the links to match the saved setting; run on boot, since a
 /// keystore module update replaces its directory.
 pub fn apply(ctx: &Context) -> Result<EntryStatus> {
+    let _lock = crate::config_lock::acquire_native(ctx)?;
     let state = State::load(&ctx.paths, &ctx.sysroot)?;
     if let Some(target) = target(ctx) {
         if state.entry_enabled {

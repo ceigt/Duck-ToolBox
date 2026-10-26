@@ -67,7 +67,11 @@
     "omkCompatibilityDescription": "تتطلب إصدارات OMK القديمة وجود EC وRSA معًا في keybox. تحتاج ملفات EC فقط، بما فيها صادرات RKP، إلى الدعم المضاف في التعديل b12557c؛ وعند غياب RSA تُستخدم سلسلة RSA المضمنة من AOSP. لا يمكن التحقق تلقائيًا من دعم الإصدار المثبت. هل تريد متابعة التثبيت؟",
     "continueInstall": "متابعة التثبيت",
     "loadConfirmed": "TEESimulator loading confirmed for this file.",
-    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately."
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately.",
+    "repoExternal": "Open the repository in your browser, download a keybox, then import it with Local.",
+    "openBrowser": "Open in browser",
+    "importDownloaded": "Import downloaded file",
+    "aospExpired": "Unavailable: the bundled AOSP EC certificate expired on 2026-01-08."
   },
   "policy": {
     "none": "لا تتضمن الوحدة النشطة سياسة افتراضية.",

@@ -1,12 +1,40 @@
 use std::{
     fs::{self, File},
-    io::{ErrorKind, Write},
+    io::{ErrorKind, Read, Write},
     path::{Path, PathBuf},
     process,
     time::{SystemTime, UNIX_EPOCH},
 };
 
 use anyhow::{Context, Result, anyhow, bail};
+
+/// Bound the read itself, including files that grow after the descriptor is opened.
+pub fn read_bounded(mut input: impl Read, maximum: usize) -> Result<String> {
+    let mut bytes = Vec::new();
+    input
+        .by_ref()
+        .take(maximum as u64 + 1)
+        .read_to_end(&mut bytes)?;
+    anyhow::ensure!(bytes.len() <= maximum, "input exceeds {maximum} bytes");
+    String::from_utf8(bytes).context("input is not UTF-8")
+}
+
+pub fn read_regular_bounded(path: &Path, maximum: usize) -> Result<String> {
+    let mut options = fs::OpenOptions::new();
+    options.read(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK);
+    }
+    let file = options.open(path).context("open import file")?;
+    let metadata = file.metadata()?;
+    anyhow::ensure!(
+        metadata.is_file() && metadata.len() <= maximum as u64,
+        "import must be a regular file of at most {maximum} bytes"
+    );
+    read_bounded(file, maximum)
+}
 
 /// Reads a UTF-8 file, returning `None` when it does not exist.
 pub fn read_optional(path: &Path) -> Result<Option<String>> {
@@ -196,6 +224,17 @@ mod tests {
     use super::{
         backup_copy, create_unique_dir, list_files_recursive, read_optional, write_bytes_atomic,
     };
+
+    #[test]
+    fn import_limits_apply_before_parsing_and_reject_directories() {
+        assert!(super::read_bounded(std::io::repeat(b'x'), 32).is_err());
+        assert_eq!(super::read_bounded(&b"ok"[..], 2).unwrap(), "ok");
+        let root = temp_root("bounded");
+        assert!(super::read_regular_bounded(&root, 32).is_err());
+        let file = root.join("huge.xml");
+        fs::write(&file, vec![b'x'; 33]).unwrap();
+        assert!(super::read_regular_bounded(&file, 32).is_err());
+    }
 
     fn temp_root(name: &str) -> std::path::PathBuf {
         let root = env::temp_dir().join(format!("duck-core-fs-{name}-{}", std::process::id()));

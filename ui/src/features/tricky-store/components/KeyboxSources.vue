@@ -27,10 +27,6 @@ const { t } = useTrickyI18n()
 const router = useRouter()
 const picking = ref(false)
 
-const aosp = useKeyboxInstall(trickyStoreApi.keyboxAosp, {
-  success: "ta.prompt_aosp_key_set",
-  bundled: true,
-})
 const unknown = useKeyboxInstall(trickyStoreApi.keyboxGenerate, {
   success: "ta.prompt_unknown_key_set",
   bundled: true,
@@ -48,6 +44,7 @@ interface Source {
   icon: Component
   title: string
   description: string
+  disabled?: boolean
   busy: () => boolean
   run: () => void
 }
@@ -57,9 +54,10 @@ const sources = computed<Source[]>(() => [
     id: "aosp",
     icon: FileKey,
     title: t("ta.menu_keybox_aosp"),
-    description: t("keybox.aospHint"),
-    busy: () => aosp.isPending.value,
-    run: () => aosp.mutate(undefined),
+    description: t("keybox.aospExpired"),
+    disabled: true,
+    busy: () => false,
+    run: () => {},
   },
   {
     id: "unknown",
@@ -95,7 +93,7 @@ const sources = computed<Source[]>(() => [
         <button
           type="button"
           class="state-layer relative w-full text-start"
-          :disabled="source.busy()"
+          :disabled="source.disabled || source.busy()"
           @click="source.run()"
         >
           <ItemMedia variant="icon"><component :is="source.icon" /></ItemMedia>

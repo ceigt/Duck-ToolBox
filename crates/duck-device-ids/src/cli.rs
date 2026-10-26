@@ -1,7 +1,4 @@
-use std::{
-    io::{self, Read},
-    path::PathBuf,
-};
+use std::{io, path::PathBuf};
 
 use anyhow::{Context, Result};
 use clap::{Args, Subcommand};
@@ -37,6 +34,12 @@ pub enum Command {
         #[arg(long)]
         exchange: PathBuf,
     },
+    /// Isolated Qualcomm vendor worker. The parent owns its lifetime and timeout.
+    #[command(hide = true)]
+    QseeCall {
+        #[arg(long)]
+        exchange: PathBuf,
+    },
 }
 
 #[derive(Debug, Args, Clone)]
@@ -47,6 +50,9 @@ pub struct ProvisionArgs {
 
 pub fn run(command: Command, ctx: &RunContext) -> CommandResult {
     match command {
+        Command::QseeCall { exchange } => {
+            crate::qseecom_worker::execute(&exchange).into_command("device-ids.qsee-call", code_of)
+        }
         Command::KphCall { exchange } => crate::trustkernel_worker::execute(&exchange)
             .into_command("device-ids.kph-call", code_of),
         Command::Defaults => {
@@ -67,9 +73,7 @@ fn provision_from_stdin(
         return Err(anyhow::anyhow!("device-ids provision requires `--stdin-json`").into());
     }
 
-    let mut input = String::new();
-    io::stdin()
-        .read_to_string(&mut input)
+    let input = duck_core::fs::read_bounded(io::stdin(), 128 * 1024)
         .context("read device ID profile JSON from stdin")?;
     let profile =
         serde_json::from_str::<DeviceIdsProfile>(&input).context("parse device ID profile JSON")?;
