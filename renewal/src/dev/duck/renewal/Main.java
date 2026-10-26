@@ -12,7 +12,7 @@ import org.json.*;
 
 /** app_process boundary; public commands return a redacted Duck envelope. */
 public final class Main implements Renewal.Platform {
-    static final String VERSION = "0.2.0-renewal.2";
+    static final String VERSION = "0.2.0-renewal.3";
     final Path module, data, tee;
     Path installTarget;
     Object context;

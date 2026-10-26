@@ -80,6 +80,7 @@
     "no_envelope": "O back-end não respondeu.",
     "binary_not_found": "O binário do back-end não foi encontrado no módulo.",
     "usage_error": "O back-end recusou a solicitação.",
-    "internal_error": "O back-end informou um erro."
+    "internal_error": "O back-end informou um erro.",
+    "external_browser_unavailable": "Could not open the system browser. Check that a browser is installed."
   }
 }

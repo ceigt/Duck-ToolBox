@@ -80,6 +80,7 @@
     "no_envelope": "Бэкенд не ответил.",
     "binary_not_found": "В модуле отсутствует исполняемый файл бэкенда.",
     "usage_error": "Бэкенд отклонил запрос.",
-    "internal_error": "Бэкенд сообщил об ошибке."
+    "internal_error": "Бэкенд сообщил об ошибке.",
+    "external_browser_unavailable": "Could not open the system browser. Check that a browser is installed."
   }
 }

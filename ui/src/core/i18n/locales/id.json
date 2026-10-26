@@ -80,6 +80,7 @@
     "no_envelope": "Backend tidak merespons.",
     "binary_not_found": "Biner backend tidak ditemukan di modul.",
     "usage_error": "Backend menolak permintaan.",
-    "internal_error": "Backend melaporkan error."
+    "internal_error": "Backend melaporkan error.",
+    "external_browser_unavailable": "Could not open the system browser. Check that a browser is installed."
   }
 }

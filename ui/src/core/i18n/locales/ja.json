@@ -80,6 +80,7 @@
     "no_envelope": "バックエンドから応答がありませんでした。",
     "binary_not_found": "モジュールにバックエンドのバイナリがありません。",
     "usage_error": "バックエンドがリクエストを拒否しました。",
-    "internal_error": "バックエンドでエラーが発生しました。"
+    "internal_error": "バックエンドでエラーが発生しました。",
+    "external_browser_unavailable": "Could not open the system browser. Check that a browser is installed."
   }
 }

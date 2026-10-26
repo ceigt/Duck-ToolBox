@@ -1,4 +1,4 @@
-Duck ToolBox 0.2.0-renewal.2 — Fork 测试版
+Duck ToolBox 0.2.0-renewal.3 — Fork 测试版
 原项目：https://github.com/eltavine/Duck-ToolBox/tree/v0.2.0-Stable
 原作者：Eltavine、KOW、MhmRdd；原 MIT 许可保留于 LICENSE。
 Fork 源码与构建：https://github.com/ceigt/Duck-ToolBox

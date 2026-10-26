@@ -80,6 +80,7 @@
     "no_envelope": "The backend did not answer.",
     "binary_not_found": "The backend binary is missing from the module.",
     "usage_error": "The backend rejected the request.",
-    "internal_error": "The backend reported an error."
+    "internal_error": "The backend reported an error.",
+    "external_browser_unavailable": "Could not open the system browser. Check that a browser is installed."
   }
 }

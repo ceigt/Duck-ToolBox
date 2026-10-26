@@ -80,6 +80,7 @@
     "no_envelope": "لم تستجب الواجهة الخلفية.",
     "binary_not_found": "الملف التنفيذي للواجهة الخلفية مفقود من الوحدة.",
     "usage_error": "رفضت الواجهة الخلفية الطلب.",
-    "internal_error": "أبلغت الواجهة الخلفية عن خطأ."
+    "internal_error": "أبلغت الواجهة الخلفية عن خطأ.",
+    "external_browser_unavailable": "Could not open the system browser. Check that a browser is installed."
   }
 }

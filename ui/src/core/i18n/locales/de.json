@@ -80,6 +80,7 @@
     "no_envelope": "Das Backend hat nicht geantwortet.",
     "binary_not_found": "Im Modul fehlt die Backend-Binärdatei.",
     "usage_error": "Das Backend hat die Anfrage abgelehnt.",
-    "internal_error": "Das Backend hat einen Fehler gemeldet."
+    "internal_error": "Das Backend hat einen Fehler gemeldet.",
+    "external_browser_unavailable": "Could not open the system browser. Check that a browser is installed."
   }
 }

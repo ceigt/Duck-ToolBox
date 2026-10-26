@@ -9,7 +9,7 @@ export const REPOSITORY_URL = "https://github.com/eltavine/Duck-ToolBox"
 
 /**
  * Opens a link in the system browser. The manager's WebView cannot leave the app, so this
- * goes through `am start` (`duckd system open-url`) and falls back to `window.open`.
+ * goes through `am start`. A root host must never fall back to WebView navigation.
  */
 export async function openExternal(url: string): Promise<void> {
   if (bridge().available) {
@@ -17,7 +17,8 @@ export async function openExternal(url: string): Promise<void> {
       await duckd(["system", "open-url", url])
       return
     } catch {
-      // Fall through to the browser.
+      toast.error(i18n.global.t("core.errors.external_browser_unavailable"))
+      return
     }
   }
   window.open(url, "_blank", "noopener")

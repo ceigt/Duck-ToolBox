@@ -80,6 +80,7 @@
     "no_envelope": "Backend không phản hồi.",
     "binary_not_found": "Module thiếu tệp nhị phân của backend.",
     "usage_error": "Backend đã từ chối yêu cầu.",
-    "internal_error": "Backend đã báo lỗi."
+    "internal_error": "Backend đã báo lỗi.",
+    "external_browser_unavailable": "Could not open the system browser. Check that a browser is installed."
   }
 }

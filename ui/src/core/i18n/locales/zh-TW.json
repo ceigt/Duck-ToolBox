@@ -80,6 +80,7 @@
     "no_envelope": "後端沒有回應。",
     "binary_not_found": "模組中缺少後端執行檔。",
     "usage_error": "後端拒絕了這項要求。",
-    "internal_error": "後端回報了錯誤。"
+    "internal_error": "後端回報了錯誤。",
+    "external_browser_unavailable": "Could not open the system browser. Check that a browser is installed."
   }
 }

@@ -80,6 +80,7 @@
     "no_envelope": "后端没有响应。",
     "binary_not_found": "模块中缺少后端程序。",
     "usage_error": "后端拒绝了该请求。",
-    "internal_error": "后端报告了错误。"
+    "internal_error": "后端报告了错误。",
+    "external_browser_unavailable": "无法打开系统浏览器，请检查是否已安装浏览器。"
   }
 }

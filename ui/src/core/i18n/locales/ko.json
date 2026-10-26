@@ -80,6 +80,7 @@
     "no_envelope": "백엔드가 응답하지 않았습니다.",
     "binary_not_found": "모듈에 백엔드 바이너리가 없습니다.",
     "usage_error": "백엔드가 요청을 거부했습니다.",
-    "internal_error": "백엔드에서 오류를 보고했습니다."
+    "internal_error": "백엔드에서 오류를 보고했습니다.",
+    "external_browser_unavailable": "Could not open the system browser. Check that a browser is installed."
   }
 }
