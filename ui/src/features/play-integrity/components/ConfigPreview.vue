@@ -1,17 +1,44 @@
 <script setup lang="ts">
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { ref } from "vue"
+import { useQueryClient } from "@tanstack/vue-query"
+import { Input } from "@/components/ui/input"
+import { libraryApi } from "../library-api"
+import { notifyError, notifySuccess } from "@/core/notify"
+import PatchPlan from "./PatchPlan.vue"
 import SectionCard from "@/core/components/SectionCard.vue"
 import type { SecurityPatchPreview } from "@/core/features"
 import type { Preview } from "../api"
 import { useIntegrityI18n } from "../i18n"
-defineProps<{
+const props = defineProps<{
   preview: Preview
   patches: { target: { id: string }; preview: SecurityPatchPreview; selected: boolean }[]
   busy: boolean
 }>()
-const emit = defineEmits<{ apply: []; close: []; select: [id: string, selected: boolean] }>()
+const emit = defineEmits<{
+  apply: []
+  close: []
+  select: [id: string, selected: boolean]
+  patchPreview: [id: string, partitions: Record<string, string>]
+}>()
 const { t } = useIntegrityI18n()
+const profileName = ref("")
+const saving = ref(false)
+const client = useQueryClient()
+async function saveCandidate() {
+  if (saving.value) return
+  saving.value = true
+  try {
+    await libraryApi.saveProfile(profileName.value, props.preview.json, props.preview.provenance)
+    await client.invalidateQueries({ queryKey: ["play-integrity.profiles"] })
+    notifySuccess(t("profiles.saved"))
+    profileName.value = ""
+  } catch (error) {
+    notifyError(error)
+  } finally {
+    saving.value = false
+  }
+}
 </script>
 <template>
   <SectionCard :title="t('preview')" :description="t('previewHelp')">
@@ -46,31 +73,39 @@ const { t } = useIntegrityI18n()
         </thead>
         <tbody>
           <tr v-for="change in preview.changes" :key="change.key" class="border-t">
-            <td class="p-2 font-mono">{{ change.key }}</td>
-            <td class="max-w-48 p-2 break-all">{{ change.before ?? "—" }}</td>
-            <td class="max-w-48 p-2 break-all">{{ change.after ?? "—" }}</td>
+            <td dir="ltr" class="p-2 font-mono">{{ change.key }}</td>
+            <td dir="ltr" class="max-w-48 p-2 break-all">{{ change.before ?? "—" }}</td>
+            <td dir="ltr" class="max-w-48 p-2 break-all">{{ change.after ?? "—" }}</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div
+    <PatchPlan
       v-for="patch in patches"
       :key="patch.target.id"
-      class="mt-4 rounded-xl border border-border/70 bg-muted/20 p-4"
-    >
-      <label class="flex min-h-11 items-center gap-3"
-        ><Checkbox
-          :model-value="patch.selected"
-          @update:model-value="emit('select', patch.target.id, $event === true)"
-        />{{ t("syncPatch") }} ({{ patch.preview.backend }})</label
-      >
-      <p
-        v-for="change in patch.preview.changes"
-        :key="change.key"
-        class="text-muted-foreground break-all font-mono text-xs"
-      >
-        {{ change.key }}: {{ change.before ?? "—" }} → {{ change.after }}
+      :preview="patch.preview"
+      :selected="patch.selected"
+      :busy="busy"
+      @select="emit('select', patch.target.id, $event)"
+      @preview="emit('patchPreview', patch.target.id, $event)"
+    />
+    <div v-if="preview.provenance" class="mt-4 rounded-xl border p-4">
+      <p dir="ltr" class="text-muted-foreground mb-3 text-sm">
+        {{ preview.provenance.source }} · {{ preview.provenance.build }}
       </p>
+      <Input
+        v-model="profileName"
+        maxlength="64"
+        :aria-label="t('profiles.name')"
+        :placeholder="t('profiles.name')"
+      />
+      <Button
+        variant="outline"
+        class="mt-2"
+        :disabled="busy || saving || !profileName.trim()"
+        @click="saveCandidate"
+        >{{ t("profiles.save") }}</Button
+      >
     </div>
     <div class="mt-4 flex flex-wrap gap-2">
       <Button :disabled="busy" @click="emit('apply')">{{ t("apply") }}</Button

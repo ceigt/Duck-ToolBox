@@ -19,7 +19,16 @@ export const previewSchema = configSchema.extend({
   warnings: z
     .array(
       z.object({
-        code: z.enum(["missing_api", "mismatch", "provider", "wildcard", "canary", "patch_scope"]),
+        code: z.enum([
+          "missing_api",
+          "mismatch",
+          "provider",
+          "wildcard",
+          "canary",
+          "patch_scope",
+          "vending_priority",
+          "pixel_patch_unknown",
+        ]),
         fields: z.array(z.string()),
       }),
     )
@@ -31,6 +40,15 @@ export const previewSchema = configSchema.extend({
   metadata: z
     .object({ released: z.string().nullable(), estimated_expiry: z.string().nullable() })
     .optional(),
+  provenance: z
+    .object({
+      source: z.string(),
+      device: z.string(),
+      build: z.string(),
+      fetched: z.number(),
+      patch_known: z.boolean(),
+    })
+    .optional(),
 })
 export type Preview = z.infer<typeof previewSchema>
 const statusSchema = z.object({
@@ -41,6 +59,8 @@ const statusSchema = z.object({
   zygisk_detected: z.boolean(),
   conflicts: z.array(z.string()),
   reboot_required: z.boolean(),
+  process_restart_required: z.boolean().default(false),
+  activation_reason: z.string().nullable().optional(),
   state: z.string(),
   data_dir: z.string(),
   verdict_verified: z.literal(false),
@@ -81,7 +101,12 @@ export const integrityApi = {
     }),
   applyTransaction: (
     preview: Preview,
-    patch?: { target: string; patch: string; revision: string },
+    patch?: {
+      target: string
+      patch: string
+      revision: string
+      partitions?: Record<string, string> | null
+    },
   ) =>
     duckd(["integrity-transaction", "apply"], {
       input: {

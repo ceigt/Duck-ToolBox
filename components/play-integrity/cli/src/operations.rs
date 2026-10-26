@@ -60,12 +60,19 @@ pub fn run(engine: &Engine, operation: &str, input: Value) -> Result<Value> {
         "status" => status(engine),
         "config" => config::current(engine),
         "inspect" => crate::inspection::inspect(engine),
+        "require-reboot" => {
+            let _lock = files::Lock::acquire(&engine.data)?;
+            let raw = files::read(&engine.data.join("custom.pif.json"))?;
+            crate::activation::require(engine, &files::hash(raw.as_bytes()), true)?;
+            crate::activation::pending(engine)
+        }
         "profile-list" => crate::library::profiles(engine),
         "profile-save" => crate::library::save_profile(engine, &input),
         "profile-preview" => crate::library::preview_profile(engine, &input),
         "profile-delete" => crate::library::delete_profile(engine, &input),
         "record-list" => crate::library::records(engine),
         "record-save" => crate::library::save_record(engine, &input, || options(engine)),
+        "record-import" => crate::library::import_record(engine, &input, || options(engine)),
         "record-clear" => crate::library::clear_records(engine),
         "preview" => config::preview(engine, &input),
         "import-preview" => {
@@ -173,13 +180,15 @@ pub fn status(engine: &Engine) -> Result<Value> {
             && !path.join("remove").exists()
     }) || magisk_runtime;
     let runtime_active = active(engine)?;
-    let reboot = loaded["active"] != runtime_active
+    let activation = crate::activation::pending(engine)?;
+    let reboot = activation["reboot_required"] == true
+        || loaded["active"] != runtime_active
         || loaded["boot_id"] != boot
         || loaded["options"] != opts
         || loaded["compatibility"] != compatibility(engine)?;
     Ok(
         json!({"api":1,"upstream_revision":UPSTREAM,"options":opts,"has_config":has_config,"lifecycle_eligible":runtime_active,"zygisk_detected":zygisk,
-        "conflicts":conflict,"reboot_required":reboot,"attachment":evidence,"boot":loaded,
+        "conflicts":conflict,"reboot_required":reboot,"process_restart_required":activation["process_restart_required"],"activation_reason":activation["reason"],"attachment":evidence,"boot":loaded,
         "state":if !module_enabled(engine) || !opts["enabled"].as_bool().unwrap_or(true){"disabled"}else if !conflict.is_empty(){"conflict"}else if opts["mode"]=="scripts-only"{"scripts-only"}else if !has_config{"configuration-required"}else if !zygisk{"zygisk-unconfirmed"}else{"configured"},
         "app_replace_list":if engine.data.join("custom.app_replace_list.txt").exists(){files::read(&engine.data.join("custom.app_replace_list.txt"))?}else{files::read(&engine.module.join("scripts/app_replace_list.txt"))?},"data_dir":engine.data,"source":"licenses/play-integrity/SOURCE.txt","license":"licenses/play-integrity/GPL-3.0.txt","verdict_verified":false}),
     )
@@ -207,6 +216,7 @@ fn apply(engine: &Engine, input: &Value) -> Result<Value> {
     }
     let path = engine.data.join("custom.pif.json");
     let old = files::read(&path)?;
+    let previous_activation = files::read(&engine.data.join("activation.json"))?;
     let new = text(&preview, "json")?;
     let token = files::hash(format!("{old}\0{new}").as_bytes());
     if input.get("backup").is_some_and(|backup| backup != &token) {
@@ -218,6 +228,9 @@ fn apply(engine: &Engine, input: &Value) -> Result<Value> {
         &json!({"content":old,"applied_hash":files::hash(new.as_bytes())}),
     )?;
     let publication = (|| -> Result<Value> {
+        if old != new {
+            crate::activation::require(engine, &files::hash(new.as_bytes()), false)?;
+        }
         files::atomic(&path, new.as_bytes())?;
         let saved = config::current(engine)?;
         if saved["revision"] != files::hash(new.as_bytes()) {
@@ -228,7 +241,18 @@ fn apply(engine: &Engine, input: &Value) -> Result<Value> {
     match publication {
         Ok(saved) => Ok(json!({"config":saved,"backup":token,"restart_required":true})),
         Err(error) => {
-            if let Err(recovery) = files::atomic(&path, old.as_bytes()) {
+            if let Err(recovery) = files::atomic(&path, old.as_bytes()).and_then(|()| {
+                let activation = engine.data.join("activation.json");
+                if previous_activation.is_empty() {
+                    if activation.exists() {
+                        fs::remove_file(activation)?;
+                        fs::File::open(&engine.data)?.sync_all()?;
+                    }
+                    Ok(())
+                } else {
+                    files::atomic(&activation, previous_activation.as_bytes())
+                }
+            }) {
                 return Err(files::RecoveryError(json!({"path":path,"backup_path":backup,"apply_error":format!("{error:#}"),"restore_error":format!("{recovery:#}")})).into());
             }
             Err(error.context("publication failed; original configuration restored"))
@@ -250,6 +274,11 @@ fn restore(engine: &Engine, input: &Value) -> Result<Value> {
     {
         bail!("configuration changed after apply; restore refused");
     }
+    crate::activation::require(
+        engine,
+        &files::hash(text(&saved, "content")?.as_bytes()),
+        false,
+    )?;
     files::atomic(&path, text(&saved, "content")?.as_bytes()).map_err(|e| {
         files::RecoveryError(json!({"path":path,"backup_path":backup,"reason":e.to_string()}))
     })?;
@@ -316,10 +345,21 @@ fn restart(engine: &Engine) -> Result<Value> {
     if engine.sysroot != std::path::Path::new("/") {
         bail!("process restart requires a live device");
     }
+    let _lock = files::Lock::acquire(&engine.data)?;
+    let revision = config::current(engine)?["revision"]
+        .as_str()
+        .unwrap_or("")
+        .to_owned();
     let mut results = Vec::new();
     for process in ["com.google.android.gms.unstable", "com.android.vending"] {
-        let output = Command::new("killall").arg(process).output()?;
+        let output = crate::command::run(
+            Command::new("killall").arg(process),
+            std::time::Duration::from_secs(2),
+        )?;
         results.push(json!({"process":process,"exit_code":output.status.code(),"output":String::from_utf8_lossy(&output.stderr)}));
+    }
+    if results.iter().all(|r| r["exit_code"] == 0) {
+        crate::activation::restarted(engine, &revision)?;
     }
     Ok(json!({"processes":results,"verdict_verified":false}))
 }

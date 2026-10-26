@@ -18,6 +18,8 @@ pub struct Request {
     #[serde(default)]
     pub patch: String,
     #[serde(default)]
+    pub partitions: Option<BTreeMap<String, String>>,
+    #[serde(default)]
     pub revision: String,
     #[serde(default)]
     pub backup: String,
@@ -75,7 +77,7 @@ fn restore_files(ctx: &Context, dir: &str, snapshot: &Snapshot) -> Result<()> {
     }
     Ok(())
 }
-fn proposed(backend: Backend, patch: &str) -> Result<Policy> {
+fn uniform(backend: Backend, patch: &str) -> Result<Policy> {
     let valid = patch.len() == 10
         && patch.as_bytes()[4] == b'-'
         && patch.as_bytes()[7] == b'-'
@@ -118,11 +120,36 @@ fn proposed(backend: Backend, patch: &str) -> Result<Policy> {
         .collect(),
     })
 }
+fn proposed(backend: Backend, request: &Request) -> Result<Policy> {
+    let Some(partitions) = &request.partitions else {
+        return uniform(backend, &request.patch);
+    };
+    if partitions.is_empty() {
+        bail!("select at least one patch partition");
+    }
+    let mut result = Policy::new();
+    for (scope, date) in partitions {
+        let keys: &[&str] = match (backend, scope.as_str()) {
+            (Backend::OhMyKeymint, "system") => &["security_patch", "os_patchlevel"],
+            (Backend::OhMyKeymint, "vendor") => &["vendor_patchlevel"],
+            (Backend::OhMyKeymint, "boot") => &["boot_patchlevel"],
+            (_, "system") => &["os_patch"],
+            (_, "vendor") => &["vendor_patch"],
+            (_, "boot") => &["boot_patch"],
+            _ => bail!("unsupported patch partition: {scope}"),
+        };
+        let values = uniform(backend, date)?;
+        for key in keys {
+            result.insert((*key).into(), values[*key].clone());
+        }
+    }
+    Ok(result)
+}
 pub fn preview(ctx: &Context, request: &Request) -> Result<Value> {
     let _lock = crate::config_lock::acquire(ctx)?;
     let (detection, adapter) = active_adapter(&ctx.sysroot)?;
     let before = adapter.read(&ctx.sysroot)?;
-    let values = proposed(detection.backend, &request.patch)?;
+    let values = proposed(detection.backend, request)?;
     let mut candidate = before.default_policy.clone();
     candidate.extend(values.clone());
     crate::policy::sanitize(&adapter.policy_schema(), candidate)?;
@@ -132,7 +159,7 @@ pub fn preview(ctx: &Context, request: &Request) -> Result<Value> {
         .map(|(k, v)| json!({"key":k,"before":before.default_policy.get(k),"after":v}))
         .collect();
     Ok(
-        json!({"backend":detection.backend,"patch":request.patch,"revision":revision(&snapshot(ctx,adapter.config_dir(),detection.backend)?)?,"changes":changes}),
+        json!({"backend":detection.backend,"patch":request.patch,"partitions":request.partitions,"revision":revision(&snapshot(ctx,adapter.config_dir(),detection.backend)?)?,"changes":changes}),
     )
 }
 /// Render and durably back up a preview without changing live keystore files.
@@ -147,7 +174,7 @@ pub fn prepare(ctx: &Context, request: &Request) -> Result<Value> {
     let mut config = original.clone();
     config
         .default_policy
-        .extend(proposed(detection.backend, &request.patch)?);
+        .extend(proposed(detection.backend, request)?);
     // Validate managed fields without dropping backend extensions from the snapshot.
     crate::policy::sanitize(&adapter.policy_schema(), config.default_policy.clone())?;
     let restart = adapter
@@ -295,6 +322,41 @@ pub fn restore(ctx: &Context, request: &Request) -> Result<Value> {
 mod tests {
     use super::*;
     #[test]
+    fn scoped_dates_preserve_unselected_partitions_and_backend_formats() {
+        let request = Request {
+            patch: "2026-10-05".into(),
+            partitions: Some(BTreeMap::from([
+                ("system".into(), "2026-09-05".into()),
+                ("vendor".into(), "2026-08-05".into()),
+            ])),
+            ..Default::default()
+        };
+        let omk = proposed(Backend::OhMyKeymint, &request).unwrap();
+        assert_eq!(omk["security_patch"], "2026-09-05");
+        assert_eq!(omk["vendor_patchlevel"], "2026-08-05");
+        assert!(!omk.contains_key("boot_patchlevel"));
+        let ts = proposed(Backend::TrickyStore, &request).unwrap();
+        assert_eq!(ts["os_patch"], "202609");
+        assert_eq!(ts["vendor_patch"], "20260805");
+        assert!(!ts.contains_key("boot_patch"));
+        for partitions in [
+            BTreeMap::new(),
+            BTreeMap::from([("other".into(), "2026-09-05".into())]),
+            BTreeMap::from([("boot".into(), "2026-02-29".into())]),
+        ] {
+            assert!(
+                proposed(
+                    Backend::OhMyKeymint,
+                    &Request {
+                        partitions: Some(partitions),
+                        ..Default::default()
+                    }
+                )
+                .is_err()
+            );
+        }
+    }
+    #[test]
     fn prepared_restore_handles_partial_publication_and_restart_keys() {
         for (id, code, dir, original, restart) in [
             (
@@ -359,22 +421,22 @@ mod tests {
     fn mappings_are_backend_specific() {
         let date = "2026-10-05";
         assert_eq!(
-            proposed(Backend::TrickyStore, date).unwrap()["os_patch"],
+            uniform(Backend::TrickyStore, date).unwrap()["os_patch"],
             "202610"
         );
         assert_eq!(
-            proposed(Backend::TrickyStoreLegacy, date).unwrap()["boot_patch"],
+            uniform(Backend::TrickyStoreLegacy, date).unwrap()["boot_patch"],
             "20261005"
         );
         assert_eq!(
-            proposed(Backend::TeeSimulator, date).unwrap()["os_patch"],
+            uniform(Backend::TeeSimulator, date).unwrap()["os_patch"],
             date
         );
         assert_eq!(
-            proposed(Backend::OhMyKeymint, date).unwrap()["security_patch"],
+            uniform(Backend::OhMyKeymint, date).unwrap()["security_patch"],
             date
         );
-        assert!(proposed(Backend::TrickyStore, "2026-02-31").is_err());
+        assert!(uniform(Backend::TrickyStore, "2026-02-31").is_err());
     }
     #[test]
     fn readback_failure_restores_the_snapshot() {

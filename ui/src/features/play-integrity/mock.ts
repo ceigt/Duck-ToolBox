@@ -17,6 +17,8 @@ let previous = ""
 let count = 0
 let cancelled = false
 let stopRevision = "initial"
+let processRestart = false
+let rebootRequired = false
 let interrupted = new URLSearchParams(location.search).get("interrupted-transaction") === "1"
 const profiles: Awaited<ReturnType<typeof libraryApi.profiles>>["profiles"] = []
 const profileContents = new Map<string, string>()
@@ -71,6 +73,66 @@ function preview(value: string) {
 const mock: MockModule = {
   feature: { id: "play-integrity", contract: 1 },
   handlers: {
+    "play-integrity.pixel-devices": () => ({
+      default: "bluejay",
+      devices: [
+        { id: "bluejay", name: "Pixel 6a" },
+        { id: "lynx", name: "Pixel 7a" },
+      ],
+    }),
+    "play-integrity.pixel-builds": (_a, _f, input) => {
+      const device = (input as { device: string }).device
+      return {
+        device,
+        model: device === "bluejay" ? "Pixel 6a" : "Pixel 7a",
+        source: "https://flash.android.com/",
+        fetched: Math.floor(Date.now() / 1000),
+        builds: [
+          {
+            id: "RELEASE.1",
+            incremental: "1234",
+            release: "16",
+            notes: "",
+            fingerprint: `google/${device}/${device}:16/RELEASE.1/1234:user/release-keys`,
+          },
+        ],
+      }
+    },
+    "play-integrity.pixel-preview": (_a, _f, input) => {
+      const device = (input as { device: string }).device
+      return {
+        ...preview(
+          `MODEL=${device === "bluejay" ? "Pixel 6a" : "Pixel 7a"}\nDEVICE=${device}\nID=RELEASE.1\nFINGERPRINT=google/${device}/${device}:16/RELEASE.1/1234:user/release-keys\n`,
+        ),
+        provenance: {
+          source: "https://flash.android.com/",
+          device,
+          build: "RELEASE.1",
+          fetched: Math.floor(Date.now() / 1000),
+          patch_known: false,
+        },
+        warnings: [{ code: "pixel_patch_unknown", fields: [] }],
+      }
+    },
+    "play-integrity.record-import": (args, flags, input) => {
+      const value = input as {
+        revision: string
+        report: {
+          requestDetails: { requestPackageName: string }
+          deviceIntegrity: { deviceRecognitionVerdict?: string[] }
+        }
+      }
+      const labels = value.report.deviceIntegrity.deviceRecognitionVerdict ?? []
+      return mock.handlers["play-integrity.record-save"]!(args, flags, {
+        app: value.report.requestDetails.requestPackageName,
+        version: "",
+        note: "",
+        revision: value.revision,
+        basic: labels.includes("MEETS_BASIC_INTEGRITY") ? "pass" : "omitted",
+        device: labels.includes("MEETS_DEVICE_INTEGRITY") ? "pass" : "omitted",
+        strong: labels.includes("MEETS_STRONG_INTEGRITY") ? "pass" : "omitted",
+      })
+    },
     "play-integrity.profile-list": () => ({
       profiles: [...profiles],
       invalid_profiles: [...invalidProfiles],
@@ -97,6 +159,8 @@ const mock: MockModule = {
       revision,
       read_error: null,
       runtime_observed: false,
+      processes: [],
+      runtime_error: null,
       verdict_verified: false,
       rows: identityPairs.map(([field, property]) => ({
         field,
@@ -134,6 +198,7 @@ const mock: MockModule = {
         fingerprint: entries(content).FINGERPRINT ?? "",
         enabled: options.enabled,
         mode: options.mode,
+        installation_source: v.installation_source ?? "",
       })
       records.splice(24)
       return { records: [...records], user_reported: true, verdict_verified: false }
@@ -178,6 +243,7 @@ const mock: MockModule = {
         throw new MockFailure("internal_error", "Interrupted transaction requires recovery")
       const request = input as { engine: unknown; patch?: unknown }
       const result = mock.handlers["play-integrity.apply"]!(args, flags, request.engine)
+      if (request.patch) rebootRequired = true
       if (request.patch && new URLSearchParams(location.search).get("patch-fail") === "1") {
         mock.handlers["play-integrity.restore"]!(args, flags, {})
         throw new MockFailure("backend_rule", "Patch fixture rejected")
@@ -193,7 +259,8 @@ const mock: MockModule = {
         has_config: true,
         zygisk_detected: true,
         conflicts: [],
-        reboot_required: false,
+        reboot_required: rebootRequired,
+        process_restart_required: processRestart,
         state: options.enabled
           ? options.mode === "scripts-only"
             ? "scripts-only"
@@ -217,11 +284,13 @@ const mock: MockModule = {
       previous = content
       content = preview(request.content).content
       revision = contentRevision()
+      processRestart = true
       return { config: config(), backup: "mock-backup", restart_required: true }
     },
     "play-integrity.restore": () => {
       content = previous
       revision = contentRevision()
+      processRestart = true
       return { config: config(), restart_required: true }
     },
     "play-integrity.options": (_args, _flags, input) => {
@@ -250,13 +319,16 @@ const mock: MockModule = {
       cancelled = true
       return { id: "fixture-task", state: "cancelled", result: null, error: null, output: "" }
     },
-    "play-integrity.restart": () => ({
-      processes: [
-        { process: "com.google.android.gms.unstable", exit_code: 0, output: "" },
-        { process: "com.android.vending", exit_code: 0, output: "" },
-      ],
-      verdict_verified: false,
-    }),
+    "play-integrity.restart": () => {
+      processRestart = false
+      return {
+        processes: [
+          { process: "com.google.android.gms.unstable", exit_code: 0, output: "" },
+          { process: "com.android.vending", exit_code: 0, output: "" },
+        ],
+        verdict_verified: false,
+      }
+    },
     "play-integrity.diagnose": () => ({
       log: "PIF/Native: Injection initialized for com.google.android.gms.unstable",
       verdict_verified: false,

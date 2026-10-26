@@ -94,7 +94,9 @@
     "mismatch": "Build 欄位與對應系統屬性設定了不同值。",
     "provider": "Provider 相容會阻止憑證鏈請求，請確認目前方案是否需要。",
     "wildcard": "不支援此萬用字元寫法：僅實作開頭 * 的後綴比對。",
-    "canary": "Canary 保留上游經驗規則：Pixel 10a 使用 API 35（上游註解實際為 36），未知機型使用 37，board API 使用 32。六週失效日期及修補程式回退值皆為估計，不代表 Google 接受或憑證效期。"
+    "canary": "Canary 保留上游經驗規則：Pixel 10a 使用 API 35（上游註解實際為 36），未知機型使用 37，board API 使用 32。六週失效日期及修補程式回退值皆為估計，不代表 Google 接受或憑證效期。",
+    "vending_priority": "Play 商店 SDK 相容模式優先於指紋覆寫。",
+    "pixel_patch_unknown": "Google 建構資料未提供精確安全修補日期，候選設定將其留空。"
   },
   "strongHelp": "為候選設定 spoofProvider=0；保留一致的 Build／屬性修補程式值，不保證完整性判定結果。",
   "recoveryTitle": "設定更新中斷",
@@ -150,7 +152,10 @@
     "unobserved": "尚未觀測目標程序內的值。這些讀值無法證明注入成功或 Google 判定結果。",
     "values": "查看欄位對照",
     "system": "目前系統讀值",
-    "unknown": "未讀取／未設定"
+    "unknown": "未讀取／未設定",
+    "observed": "讀回資料已核對設定版本及本次啟動的存活程序，僅供本機診斷，不代表 Google 判定。",
+    "runtimeError": "無法取得程序觀測資料，請重啟或開啟目標應用程式後重新整理。",
+    "hook": "屬性回呼 hook 已安裝"
   },
   "history": {
     "title": "測試記錄",
@@ -167,7 +172,13 @@
     "fail": "未通過（手動記錄）",
     "context": "記錄時的設定",
     "clear": "清空測試記錄",
-    "clearHelp": "移除所有手動測試記錄，保留設定方案。"
+    "clearHelp": "移除所有手動測試記錄，保留設定方案。",
+    "omitted": "未傳回 · 原因未知",
+    "import": "匯入已解碼報告",
+    "importHelp": "貼上已解碼的 Play Integrity JSON。僅保留標籤及應用程式、授權資料，缺少標籤不視為失敗。",
+    "report": "已解碼的完整性報告 JSON",
+    "installationSource": "測試應用程式安裝來源（選填）",
+    "unverified": "報告由使用者匯入，尚未驗證真實性。"
   },
   "guide": {
     "title": "規則與依據",
@@ -179,5 +190,38 @@
     "community": "2026 年 10 月的記錄包含關閉 PIF 後改善及特定設定仍有效等不同結果，PixelOS 也報告伺服器變更。具體檢查未公開，尚不能歸納為 Pixel 全封或 API 32–35 必過。",
     "canary": "此處取得 Pixel Canary 候選，較新不一定更適合目前裝置。產生後先預覽，不會直接套用。",
     "import": "使用匯入或自訂設定"
+  },
+  "pixel": {
+    "title": "Pixel 指紋取得",
+    "help": "取得 Google 正式版建構資料，選擇裝置與版本後預覽。預設為 Pixel 6a，不代表通過完整性驗證。",
+    "device": "Pixel 裝置",
+    "build": "正式版建構",
+    "fetch": "取得 Pixel 建構",
+    "loading": "取得中…",
+    "patchUnknown": "無法確認精確安全修補日期，不推測或同步日期。",
+    "preview": "預覽所選指紋"
+  },
+  "quick": {
+    "title": "指紋快速設定",
+    "vending": "Play 商店覆寫模式",
+    "vendingHelp": "商店指紋模式只覆寫 FINGERPRINT；SDK 相容模式優先。",
+    "off": "關閉",
+    "fingerprint": "使用設定中的指紋",
+    "custom": "自訂 Play 商店指紋",
+    "sdk": "SDK 相容上限",
+    "all": "準備開啟三項覆寫",
+    "draft": "變更僅影響草稿，預覽並套用後才會儲存。"
+  },
+  "activation": {
+    "reboot": "設定已儲存，請重新啟動裝置；重啟 PI 程序無法清除此要求。",
+    "process": "設定已儲存，請重啟 PI 程序載入新值。"
+  },
+  "patch": {
+    "help": "修改的是證明原則，不是安裝安全更新。未選取的分割區保留原設定。",
+    "system": "系統修補",
+    "vendor": "Vendor 修補",
+    "boot": "Boot 修補",
+    "preview": "更新修補預覽",
+    "draft": "分割區修改尚未預覽，請先更新預覽再選取同步。"
   }
 }

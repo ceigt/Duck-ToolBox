@@ -121,6 +121,7 @@ fn recover(ctx: &Context, store: &Store, journal: &mut Journal) -> Result<Value>
     let mut failures = Vec::new();
     let mut restart = journal.restart_required;
     if journal.patch_started {
+        let activation = duck_play_integrity::request(ctx, "require-reboot", &json!({}));
         let result = patch_restore(
             ctx,
             journal
@@ -132,13 +133,17 @@ fn recover(ctx: &Context, store: &Store, journal: &mut Journal) -> Result<Value>
             Ok(value) => {
                 restart |= value["restart_required"] == true;
                 journal.restart_required = restart;
-                journal.patch_started = false;
+                // Restore independent files even when the activation marker needs a retry.
+                journal.patch_started = activation.is_err();
                 store.save(journal)?;
             }
             Err(error) => failures.push(format!(
                 "keystore: {error:#}; backup={:?}",
                 journal.patch_backup
             )),
+        }
+        if let Err(error) = activation {
+            failures.push(format!("activation requirement: {error:#}"));
         }
     }
     if journal.engine_started {
@@ -224,6 +229,7 @@ fn run(ctx: &Context, command: Command) -> Result<Value> {
                 if let Some(backup) = &journal.patch_backup {
                     journal.patch_started = true;
                     store.save(&journal)?;
+                    duck_play_integrity::request(ctx, "require-reboot", &json!({}))?;
                     restart |= patch_commit(ctx, backup)?["restart_required"] == true;
                 }
                 if duck_play_integrity::request(ctx, "power", &json!({}))?["stop_revision"]

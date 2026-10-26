@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 // Play Integrity Fork derivative; see the engine LICENSE and UPSTREAM.json.
 // Modified 2026-10-24: independent CLI and versioned process interface.
+mod activation;
 mod command;
 mod config;
 mod denylist;
@@ -8,14 +9,18 @@ mod files;
 mod inspection;
 mod library;
 mod network;
+mod observation;
 mod operations;
 mod paths;
+mod pixel;
 mod power;
+mod reports;
 mod rules;
 mod selinux;
 mod shutdown;
 mod stages;
 mod tasks;
+mod test_environment;
 
 use anyhow::{Result, bail};
 use clap::{Parser, Subcommand};
@@ -169,7 +174,12 @@ async fn main() {
                 } else {
                     serde_json::from_str(&input)?
                 };
-                operations::run(&engine, &operation, request)
+                match operation.as_str() {
+                    "pixel-devices" => Ok(pixel::devices()),
+                    "pixel-builds" => pixel::builds(&engine, &request).await,
+                    "pixel-preview" => pixel::preview(&engine, &request),
+                    _ => operations::run(&engine, &operation, request),
+                }
             }
             Command::Fetch { .. } => unreachable!(),
             Command::Active => unreachable!(),

@@ -94,7 +94,9 @@
     "mismatch": "Build e a propriedade correspondente têm valores explícitos diferentes.",
     "provider": "A compatibilidade Provider bloqueia cadeias de certificados. Verifique se ela é necessária.",
     "wildcard": "Padrão não suportado: apenas * inicial para sufixo está implementado.",
-    "canary": "Canary mantém heurísticas originais: Pixel 10a usa API 35 (nota: real 36), aparelhos desconhecidos 37, board API 32. As seis semanas e o patch alternativo são estimativas, não aceitação do Google nem validade dos certificados."
+    "canary": "Canary mantém heurísticas originais: Pixel 10a usa API 35 (nota: real 36), aparelhos desconhecidos 37, board API 32. As seis semanas e o patch alternativo são estimativas, não aceitação do Google nem validade dos certificados.",
+    "vending_priority": "A compatibilidade SDK da Play Store tem prioridade sobre a impressão.",
+    "pixel_patch_unknown": "Os metadados Google não indicam a data exata do patch; o candidato a deixa em branco."
   },
   "strongHelp": "Define spoofProvider=0 para o candidato. Mantém valores de patch Build e propriedade coerentes; nenhum resultado é garantido.",
   "recoveryTitle": "Atualização de configuração interrompida",
@@ -150,7 +152,10 @@
     "unobserved": "Os valores do processo de destino não foram observados. Essas leituras não comprovam injeção nem um resultado do Google.",
     "values": "Mostrar comparação dos campos",
     "system": "Leitura atual do sistema",
-    "unknown": "Indisponível / não definido"
+    "unknown": "Indisponível / não definido",
+    "observed": "A revisão e um processo ativo desta inicialização correspondem. Diagnóstico local, não um veredito Google.",
+    "runtimeError": "Não foi possível ler os processos. Abra ou reinicie os apps de destino e atualize.",
+    "hook": "Hook de retorno das propriedades instalado"
   },
   "history": {
     "title": "Histórico de testes",
@@ -167,7 +172,13 @@
     "fail": "Reprovado (relatado)",
     "context": "Configuração no registro",
     "clear": "Limpar histórico",
-    "clearHelp": "Todas as observações manuais serão removidas. As configurações serão mantidas."
+    "clearHelp": "Todas as observações manuais serão removidas. As configurações serão mantidas.",
+    "omitted": "Não retornado · motivo desconhecido",
+    "import": "Importar relatório decodificado",
+    "importHelp": "Cole o JSON Play Integrity decodificado. Só são mantidos rótulos e dados do app e da licença. Rótulos ausentes não são tratados como falhas.",
+    "report": "Relatório de integridade decodificado JSON",
+    "installationSource": "Origem de instalação do app de teste (opcional)",
+    "unverified": "Relatório importado pelo usuário; autenticidade não verificada."
   },
   "guide": {
     "title": "Regras e referências",
@@ -179,5 +190,38 @@
     "community": "Em outubro de 2026 houve relatos de melhora ao desativar o PIF e de sucesso com configurações específicas. O PixelOS também relatou uma mudança no servidor. As verificações exatas não são públicas; não há comprovação de bloqueio universal de Pixel nem de sucesso garantido com API 32–35.",
     "canary": "Baixa um candidato Pixel Canary. Mais recente não significa mais adequado ao dispositivo. A geração prepara apenas uma prévia.",
     "import": "Usar configuração importada ou personalizada"
+  },
+  "pixel": {
+    "title": "Impressões digitais Pixel",
+    "help": "Busque versões oficiais do Google, escolha o dispositivo e a compilação e visualize. Pixel 6a é a seleção inicial; não garante aprovação.",
+    "device": "Dispositivo Pixel",
+    "build": "Compilação oficial",
+    "fetch": "Buscar compilações Pixel",
+    "loading": "Buscando…",
+    "patchUnknown": "A data exata do patch é desconhecida; não será estimada nem sincronizada.",
+    "preview": "Visualizar impressão selecionada"
+  },
+  "quick": {
+    "title": "Controles da impressão",
+    "vending": "Modo de substituição da Play Store",
+    "vendingHelp": "O modo de impressão altera apenas FINGERPRINT. A compatibilidade SDK tem prioridade.",
+    "off": "Desativado",
+    "fingerprint": "Usar impressão configurada",
+    "custom": "Impressão personalizada da Play Store",
+    "sdk": "Limite de compatibilidade SDK",
+    "all": "Preparar as três substituições",
+    "draft": "As alterações afetam o rascunho. Visualize e aplique para salvar."
+  },
+  "activation": {
+    "reboot": "Configuração salva. Reinicie o dispositivo; reiniciar os processos PI não é suficiente.",
+    "process": "Configuração salva. Reinicie os processos PI para carregar os novos valores."
+  },
+  "patch": {
+    "help": "Altera a política de atestação, sem instalar atualizações. Partições não selecionadas são preservadas.",
+    "system": "Patch do sistema",
+    "vendor": "Patch Vendor",
+    "boot": "Patch Boot",
+    "preview": "Atualizar prévia dos patches",
+    "draft": "Revise as alterações das partições antes de selecionar a sincronização."
   }
 }

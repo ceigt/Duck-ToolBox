@@ -52,11 +52,11 @@ export default defineFeature({
       {
         id: "tricky-store",
         labelKey: `${NAMESPACE}.meta.title`,
-        async preview(patch) {
+        async preview(patch, partitions) {
           const status = await trickyStoreApi.status()
           if (!status.active?.active) return null
           if (status.config_error) throw new Error(status.config_error)
-          return trickyStoreApi.patchPreview(patch)
+          return trickyStoreApi.patchPreview(patch, partitions)
         },
       },
     ],

@@ -117,3 +117,49 @@ and engine mode at recording time and are explicitly marked unverified.
 readings using a bounded read-only command. Existing modules may already affect
 those system readings. Target-process values remain unobserved unless measured;
 the comparison does not establish injection or a Google Play Integrity verdict.
+
+## Pixel release candidates and activation
+
+`pixel-devices` returns the supported device catalog with `bluejay` (Pixel 6a) as
+its default. `pixel-builds` accepts an optional `device` and retrieves release
+metadata from Google's Android Flash Tool over certificate-verified HTTPS. It
+uses the public web client configuration at request time, allows no redirects,
+limits each request to five seconds and each response to 2 MiB, and retains at
+most 40 builds per device. The private catalog expires after 24 hours. This web
+metadata interface can change independently of this engine; unsupported responses
+fail explicitly without modifying the applied configuration.
+
+`pixel-preview` accepts `device` and a fetched `build` identifier. It constructs a
+release fingerprint and paired Build/property fields from that build, preserves
+existing explicit advanced options, and does not apply configuration or enable
+PIF. The metadata does not supply an exact security patch level, so the candidate
+leaves patch fields unset instead of inferring them from the build ID or release
+date. The first shipped API is device metadata, separate from the running OS SDK.
+
+Previews can include `provenance` (source, device, build, fetch time and whether an
+exact patch date is known). `profile-save` can retain this optional metadata with
+an immutable candidate snapshot. Provenance is descriptive and not a verified
+integrity verdict. Official release metadata: <https://flash.android.com/>.
+Google also distinguishes release dates from patch dates at
+<https://developers.google.com/android/images>.
+
+Configuration application records a durable process restart requirement before
+publication. Keystore patch transactions conservatively record a device reboot
+requirement. Process restarts cannot clear a device reboot requirement; a changed
+known boot identity clears requirements from the previous boot. Missing boot
+identity does not prove a reboot. Status includes `process_restart_required`.
+
+`inspect` additionally reads bounded `PIF/Observation` log records. Native injection
+emits a single snapshot after specialization: actual Build values, existing property
+callback readings, hook installation result, configuration SHA-256, PID/start time,
+boot identity and observation time. Only observations matching the saved revision,
+current boot and a currently live target process are returned. A snapshot can be
+unavailable because of log rotation, permissions or a process that has not restarted.
+It does not cover subsequent mutations, every property API or server acceptance.
+
+`record-import` accepts a decoded Play Integrity report and the current configuration
+`revision`. It stores only an allowlisted summary, never the token, nonce or account
+identifiers. Present labels are reported as passes; missing labels are `omitted`
+with an unknown cause, not failures. Imported reports remain user-supplied and
+unverified. Test context includes available system SDK, GMS/Play Store version codes,
+boot identity, activation requirements and optional `installation_source`.

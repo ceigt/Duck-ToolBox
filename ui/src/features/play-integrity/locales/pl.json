@@ -94,7 +94,9 @@
     "mismatch": "Wartość w Build oraz odpowiadająca jej właściwość systemowa mają różne jawne wartości.",
     "provider": "Tryb zgodności Providera blokuje żądania łańcucha certyfikatów; upewnij się, czy Twoja konfiguracja tego wymaga.",
     "wildcard": "Nieobsługiwany symbol wieloznaczny: zaimplementowano wyłącznie dopasowanie sufiksu zaczynające się od *.",
-    "canary": "Wersja Canary zachowuje heurystyki projektu nadrzędnego: Pixel 10a używa API 35 pomimo odnotowanego rzeczywistego API 36; nieznane urządzenia używają 37; API płyty głównej (board) to 32. Sześciotygodniowy okres wygaśnięcia oraz zapasowe poprawki to wartości szacunkowe, a nie gwarancja akceptacji przez Google czy ważności certyfikatu."
+    "canary": "Wersja Canary zachowuje heurystyki projektu nadrzędnego: Pixel 10a używa API 35 pomimo odnotowanego rzeczywistego API 36; nieznane urządzenia używają 37; API płyty głównej (board) to 32. Sześciotygodniowy okres wygaśnięcia oraz zapasowe poprawki to wartości szacunkowe, a nie gwarancja akceptacji przez Google czy ważności certyfikatu.",
+    "vending_priority": "Zgodność SDK Sklepu Play ma pierwszeństwo przed zastępowaniem odcisku.",
+    "pixel_patch_unknown": "Dane Google nie zawierają dokładnej daty poprawki; kandydat pozostawia ją pustą."
   },
   "strongHelp": "Ustawia spoofProvider=0 dla tego kandydata. Wartości łatek w Build i właściwościach pozostają sparowane; żaden werdykt nie jest gwarantowany.",
   "recoveryTitle": "Przerwana aktualizacja konfiguracji",
@@ -150,7 +152,10 @@
     "unobserved": "Wartości w procesie docelowym nie zostały zaobserwowane. Te odczyty nie potwierdzają wstrzyknięcia ani werdyktu Google.",
     "values": "Pokaż porównanie pól",
     "system": "Bieżący odczyt systemowy",
-    "unknown": "Niedostępne / nieustawione"
+    "unknown": "Niedostępne / nieustawione",
+    "observed": "Rewizja i aktywny proces bieżącego rozruchu są zgodne. To diagnostyka lokalna, nie werdykt Google.",
+    "runtimeError": "Nie można odczytać procesów. Otwórz lub uruchom ponownie aplikacje docelowe i odśwież.",
+    "hook": "Przechwytywanie wywołań właściwości zainstalowane"
   },
   "history": {
     "title": "Historia testów",
@@ -167,7 +172,13 @@
     "fail": "Niezaliczony (zgłoszony)",
     "context": "Konfiguracja w momencie zapisu",
     "clear": "Wyczyść historię testów",
-    "clearHelp": "Wszystkie ręczne wpisy testów zostaną usunięte. Konfiguracje zostaną zachowane."
+    "clearHelp": "Wszystkie ręczne wpisy testów zostaną usunięte. Konfiguracje zostaną zachowane.",
+    "omitted": "Nie zwrócono · przyczyna nieznana",
+    "import": "Importuj zdekodowany raport",
+    "importHelp": "Wklej zdekodowany JSON Play Integrity. Zapisywane są tylko etykiety oraz dane aplikacji i licencji. Brak etykiety nie oznacza niepowodzenia.",
+    "report": "Zdekodowany raport integralności JSON",
+    "installationSource": "Źródło instalacji aplikacji testowej (opcjonalne)",
+    "unverified": "Raport zaimportowany przez użytkownika; autentyczność niezweryfikowana."
   },
   "guide": {
     "title": "Reguły i dokumentacja",
@@ -179,5 +190,38 @@
     "community": "Raporty z października 2026 r. opisują zmienne rezultaty, w tym poprawę po wyłączeniu PIF oraz powodzenie przy niektórych specyficznych konfiguracjach. Projekt PixelOS również zgłaszał zmiany po stronie serwera. Dokładne procedury sprawdzania nie są publikowane; nie potwierdzono ani powszechnej blokady urządzeń Pixel, ani uniwersalnej reguły zaliczania dla poziomów API 32–35.",
     "canary": "Pobiera to kandydata Pixel Canary. Nowsza wersja niekoniecznie lepiej pasuje do Twojego urządzenia. Generowanie tworzy jedynie podgląd i nie stosuje zmian automatycznie.",
     "import": "Użyj zamiast tego zaimportowanej lub niestandardowej konfiguracji"
+  },
+  "pixel": {
+    "title": "Odciski Pixel",
+    "help": "Pobierz dane oficjalnych kompilacji Google, wybierz urządzenie i kompilację, a następnie sprawdź podgląd. Domyślnie Pixel 6a; brak gwarancji pozytywnego wyniku.",
+    "device": "Urządzenie Pixel",
+    "build": "Oficjalna kompilacja",
+    "fetch": "Pobierz kompilacje Pixel",
+    "loading": "Pobieranie…",
+    "patchUnknown": "Dokładna data poprawki jest nieznana. Nie będzie zgadywana ani synchronizowana.",
+    "preview": "Podgląd wybranego odcisku"
+  },
+  "quick": {
+    "title": "Ustawienia odcisku",
+    "vending": "Tryb zastępowania Sklepu Play",
+    "vendingHelp": "Tryb odcisku zmienia tylko FINGERPRINT. Zgodność SDK ma pierwszeństwo.",
+    "off": "Wyłączone",
+    "fingerprint": "Użyj skonfigurowanego odcisku",
+    "custom": "Własny odcisk Sklepu Play",
+    "sdk": "Limit zgodności SDK",
+    "all": "Przygotuj trzy zastąpienia",
+    "draft": "Zmiany dotyczą szkicu. Przejrzyj i zastosuj, aby zapisać."
+  },
+  "activation": {
+    "reboot": "Zapisano konfigurację. Uruchom ponownie urządzenie; restart procesów PI nie wystarczy.",
+    "process": "Zapisano konfigurację. Uruchom ponownie procesy PI, aby wczytać nowe wartości."
+  },
+  "patch": {
+    "help": "Zmienia zasady atestacji, bez instalowania aktualizacji. Niewybrane partycje zachowują konfigurację.",
+    "system": "Poprawka systemu",
+    "vendor": "Poprawka Vendor",
+    "boot": "Poprawka Boot",
+    "preview": "Odśwież podgląd poprawek",
+    "draft": "Przejrzyj zmiany partycji przed wybraniem synchronizacji."
   }
 }

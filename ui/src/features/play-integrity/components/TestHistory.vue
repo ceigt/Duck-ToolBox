@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/vue-query"
 import { useI18n } from "vue-i18n"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Field, FieldLabel } from "@/components/ui/field"
 import {
   Select,
@@ -28,12 +29,33 @@ const form = reactive({
   app: "",
   version: "",
   note: "",
+  installation_source: "",
   basic: "unknown" as ReportedResult,
   device: "unknown" as ReportedResult,
   strong: "unknown" as ReportedResult,
 })
 const busy = ref(false),
   confirm = ref(false)
+const report = ref("")
+async function importReport() {
+  if (busy.value || !props.revision) return
+  busy.value = true
+  try {
+    if (new TextEncoder().encode(report.value).length > 65536) throw new Error(t("fileLimit"))
+    await libraryApi.importRecord(
+      JSON.parse(report.value),
+      props.revision,
+      form.installation_source,
+    )
+    await client.invalidateQueries({ queryKey: ["play-integrity.records"] })
+    report.value = ""
+    notifySuccess(t("history.saved"))
+  } catch (error) {
+    notifyError(error)
+  } finally {
+    busy.value = false
+  }
+}
 async function work(clear = false) {
   if (busy.value) return
   busy.value = true
@@ -52,6 +74,20 @@ async function work(clear = false) {
 <template>
   <div class="flex flex-col gap-4">
     <p class="text-muted-foreground text-sm">{{ t("history.help") }}</p>
+    <SettingDetails :title="t('history.import')">
+      <p class="text-muted-foreground mb-3 text-sm">{{ t("history.importHelp") }}</p>
+      <Textarea
+        v-model="report"
+        dir="ltr"
+        spellcheck="false"
+        autocapitalize="off"
+        :aria-label="t('history.report')"
+        class="min-h-36 font-mono text-xs"
+      />
+      <Button class="mt-3" :disabled="busy || !revision || !report.trim()" @click="importReport">{{
+        t("history.import")
+      }}</Button>
+    </SettingDetails>
     <SettingDetails :title="t('history.add')">
       <div class="flex flex-col gap-4">
         <div class="grid gap-4 sm:grid-cols-2">
@@ -73,7 +109,7 @@ async function work(clear = false) {
               ><SelectTrigger :id="`pif-test-${key}`" class="w-full"><SelectValue /></SelectTrigger
               ><SelectContent
                 ><SelectItem
-                  v-for="value in ['unknown', 'pass', 'fail'] as const"
+                  v-for="value in ['unknown', 'pass', 'fail', 'omitted'] as const"
                   :key="value"
                   :value="value"
                   >{{ t(`history.${value}`) }}</SelectItem
@@ -82,6 +118,10 @@ async function work(clear = false) {
             >
           </Field>
         </div>
+        <Field
+          ><FieldLabel for="pif-test-source">{{ t("history.installationSource") }}</FieldLabel
+          ><Input id="pif-test-source" v-model="form.installation_source" maxlength="80"
+        /></Field>
         <Field
           ><FieldLabel for="pif-test-note">{{ t("history.note") }}</FieldLabel
           ><Input id="pif-test-note" v-model="form.note" maxlength="240"
@@ -128,6 +168,19 @@ async function work(clear = false) {
           <p class="font-mono text-xs break-all">{{ record.revision }}</p>
           <p class="mt-2 font-mono text-xs break-all">{{ record.fingerprint }}</p>
           <p v-if="record.note" class="mt-2 break-words">{{ record.note }}</p>
+          <p v-if="record.environment" class="mt-2 break-words">
+            SDK {{ record.environment.system_sdk ?? "—" }} · GMS
+            {{ record.environment.gms_version ?? "—" }} · Play
+            {{ record.environment.store_version ?? "—" }}
+          </p>
+          <p v-if="record.installation_source" class="mt-2 break-words">
+            {{ t("history.installationSource") }}: {{ record.installation_source }}
+          </p>
+          <p v-if="record.report" class="mt-2 break-words">
+            {{ record.report.licensing ?? "—" }} · {{ record.report.recognition ?? "—" }} · SDK
+            {{ record.report.sdk ?? "—" }}
+          </p>
+          <p v-if="record.report" class="mt-2 text-sm">{{ t("history.unverified") }}</p>
         </SettingDetails>
       </article>
     </QueryState>
