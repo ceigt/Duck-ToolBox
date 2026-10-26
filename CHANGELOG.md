@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.2.1-Stable - 2026-10-26
+
+### Play Integrity
+
+- Fetch selectable Pixel release fingerprints from Google build metadata, with
+  Pixel 6a selected by default. Preview candidates and save their source metadata
+  without applying them or enabling the engine. Leave unknown patch dates unset.
+- Add quick controls for Build, property and Play Store fingerprint overrides.
+  Explain the Play Store SDK compatibility mode and its precedence over fingerprints.
+- Preview system, vendor and boot patch policies separately while retaining
+  unselected partition settings and backend-specific formats.
+- Persist process restart and device reboot requirements across page reloads.
+  Keep independent keystore recovery available when an activation marker fails.
+- Compare process-local Build and property snapshots with the saved configuration,
+  matching revision, boot identity, PID and process start time. Import decoded
+  integrity reports as unverified summaries; missing labels remain unknown.
+- Extend configuration, recovery, JNI and mobile browser regression coverage,
+  including narrow English, Chinese and right-to-left layouts. Local diagnostics
+  and tests do not establish a Google Play Integrity verdict.
+
+### Translations
+
+- Add Ukrainian and Polish translations and localize the new integrity controls.
+
 ## 0.2.0-Stable - 2026-10-24
 
 ### Integrity and keystore compatibility
