@@ -106,6 +106,10 @@ const rows = computed(() => {
       @retry="status.refetch()"
     >
       <div v-if="status.data.value" class="flex flex-col gap-4">
+        <p class="text-muted-foreground text-sm break-all">
+          {{ status.data.value.backend === "ohmykeymint" ? "OhMyKeymint" : "TEESimulator" }}
+          · {{ status.data.value.target_path }}
+        </p>
         <KeyValueList :rows="rows" />
         <Alert
           v-if="!status.data.value.target_supported || !status.data.value.expires_at"
@@ -159,6 +163,8 @@ const rows = computed(() => {
             v-if="!status.data.value.enabled"
             :disabled="
               change.isPending.value ||
+              status.data.value.pending ||
+              status.data.value.recovery_required ||
               !protocol ||
               !status.data.value.target_supported ||
               !status.data.value.expires_at
@@ -205,7 +211,10 @@ const rows = computed(() => {
           : confirmation === 'discard'
             ? t('renewal.discardConfirm')
             : confirmation === 'enable'
-              ? t('renewal.consent')
+              ? t('renewal.consent') +
+                (status.data.value?.backend === 'ohmykeymint'
+                  ? '\n\n' + t('renewal.omkConsent')
+                  : '')
               : t('renewal.resumeConsent')
       "
       @confirm="change.mutate(confirmation)"

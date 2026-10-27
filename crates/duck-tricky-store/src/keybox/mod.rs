@@ -79,6 +79,11 @@ pub fn install(ctx: &Context, content: &str, source: &str) -> Result<KeyboxInsta
     let transactional = detection.backend == Backend::TeeSimulator
         && cfg!(target_os = "android")
         && ctx.sysroot.root() == std::path::Path::new("/");
+    let _renewal_lease = if transactional {
+        None
+    } else {
+        crate::renewal_lock::acquire(ctx)?
+    };
     let backup = if transactional {
         transaction::install(ctx, &device_path, &cleaned)?
     } else {

@@ -16,6 +16,8 @@ struct Profile {
     created: u64,
     content: String,
     revision: String,
+    #[serde(default)]
+    provenance: Value,
 }
 fn now() -> Result<u64> {
     Ok(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs())
@@ -49,6 +51,7 @@ fn read_profile(engine: &Engine, id: &str) -> Result<Profile> {
         bail!("profile content or identity changed");
     }
     config::parse(&value.content, "json")?;
+    provenance(&json!({"content":value.content,"provenance":value.provenance}))?;
     field(&json!({"name":value.name}), "name", 64, true)?;
     Ok(value)
 }
@@ -69,7 +72,7 @@ pub fn profiles(engine: &Engine) -> Result<Value> {
             profile_path(engine, id)?;
             match read_profile(engine, id) {
                 Ok(p) => profiles.push(
-                    json!({"id":p.id,"name":p.name,"created":p.created,"revision":p.revision}),
+                    json!({"id":p.id,"name":p.name,"created":p.created,"revision":p.revision,"provenance":p.provenance}),
                 ),
                 Err(error) => invalid.push(json!({"id":id,"error":format!("{error:#}")})),
             }
@@ -112,6 +115,7 @@ pub fn save_profile(engine: &Engine, input: &Value) -> Result<Value> {
         created: now()?,
         revision: files::hash(content.as_bytes()),
         content,
+        provenance: provenance(input)?,
     };
     files::private_dir(&engine.data.join("profiles"))?;
     if serde_json::to_vec_pretty(&profile)?.len() > 128 * 1024 {
@@ -125,7 +129,31 @@ pub fn save_profile(engine: &Engine, input: &Value) -> Result<Value> {
 }
 pub fn preview_profile(engine: &Engine, input: &Value) -> Result<Value> {
     let profile = read_profile(engine, text(input, "id")?)?;
-    config::preview(engine, &json!({"content":profile.content,"format":"json"}))
+    let mut result = config::preview(engine, &json!({"content":profile.content,"format":"json"}))?;
+    if !profile.provenance.is_null() {
+        result["provenance"] = profile.provenance;
+    }
+    Ok(result)
+}
+fn provenance(input: &Value) -> Result<Value> {
+    let Some(value) = input.get("provenance").filter(|v| !v.is_null()) else {
+        return Ok(Value::Null);
+    };
+    if value["source"] != "https://flash.android.com/"
+        || !value["fetched"].is_u64()
+        || value["patch_known"] != false
+    {
+        bail!("invalid fingerprint provenance");
+    }
+    let device = field(value, "device", 80, true)?;
+    let build = field(value, "build", 80, true)?;
+    let entries = config::parse(text(input, "content")?, "auto")?;
+    if entries.get("DEVICE") != Some(&device) || entries.get("ID") != Some(&build) {
+        bail!("provenance does not match the configuration");
+    }
+    Ok(
+        json!({"source":"https://flash.android.com/","device":device,"build":build,"fetched":value["fetched"],"patch_known":false}),
+    )
 }
 pub fn delete_profile(engine: &Engine, input: &Value) -> Result<Value> {
     let _lock = files::Lock::acquire(&engine.data)?;
@@ -147,6 +175,12 @@ struct TestRecord {
     fingerprint: String,
     enabled: bool,
     mode: String,
+    #[serde(default)]
+    environment: Value,
+    #[serde(default)]
+    report: Value,
+    #[serde(default)]
+    installation_source: String,
 }
 fn read_records(engine: &Engine) -> Result<Vec<TestRecord>> {
     let raw = files::read(&engine.data.join("test-records.json"))?;
@@ -168,14 +202,31 @@ pub fn save_record(
     input: &Value,
     settings: impl FnOnce() -> Result<Value>,
 ) -> Result<Value> {
+    save_observation(engine, input, settings, Value::Null)
+}
+pub fn import_record(
+    engine: &Engine,
+    input: &Value,
+    settings: impl FnOnce() -> Result<Value>,
+) -> Result<Value> {
+    let value = crate::reports::observation(input)?;
+    save_observation(engine, &value, settings, value["report"].clone())
+}
+fn save_observation(
+    engine: &Engine,
+    input: &Value,
+    settings: impl FnOnce() -> Result<Value>,
+    report: Value,
+) -> Result<Value> {
     let _lock = files::Lock::acquire(&engine.data)?;
     let app = field(input, "app", 80, true)?;
     let version = field(input, "version", 40, false)?;
     let note = field(input, "note", 240, false)?;
+    let installation_source = field(input, "installation_source", 80, false)?;
     let mut results = [String::new(), String::new(), String::new()];
     for (i, key) in ["basic", "device", "strong"].iter().enumerate() {
         let value = text(input, key)?;
-        if !["unknown", "pass", "fail"].contains(&value) {
+        if !["unknown", "pass", "fail", "omitted"].contains(&value) {
             bail!("invalid reported result: {key}");
         }
         results[i] = value.into();
@@ -217,6 +268,9 @@ pub fn save_record(
                 .collect(),
             enabled: options["enabled"] == true,
             mode: text(&options, "mode")?.into(),
+            environment: crate::test_environment::capture(engine)?,
+            report,
+            installation_source,
         },
     );
     previous.truncate(24);

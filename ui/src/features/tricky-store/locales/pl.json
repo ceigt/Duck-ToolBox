@@ -1,4 +1,143 @@
 {
+  "meta": {
+    "title": "Tricky Store",
+    "description": "Lista celów, keybox i zasady dla Tricky Store, TEESimulator oraz OhMyKeymint."
+  },
+  "backend": {
+    "none": "Nie znaleziono modułu keystore",
+    "noneHint": "Zainstaluj Tricky Store, TEESimulator lub OhMyKeymint, a następnie uruchom urządzenie ponownie. Ta strona zarządza aktualnie aktywnym modułem.",
+    "title": "Moduły keystore",
+    "active": "Aktywny",
+    "inactive": "Wyłączony",
+    "disabled": "Moduł {name} jest wyłączony w Twoim menedżerze roota. Zmiany zostały zapisane i zaczną obowiązywać po jego włączeniu i ponownym uruchomieniu urządzenia.",
+    "configError": "Nie udało się odczytać bieżącej konfiguracji; zapisywanie zostało zablokowane: {error}",
+    "names": {
+      "tricky-store": "Tricky Store",
+      "tricky-store-legacy": "Tricky Store (starsza wersja)",
+      "tee-simulator": "TEESimulator",
+      "oh-my-keymint": "OhMyKeymint"
+    }
+  },
+  "list": {
+    "selected": "Wybrano: {count}",
+    "empty": "Brak aplikacji pasujących do wyszukiwania.",
+    "system": "Systemowe",
+    "tune": "Tryb i zasady dla {name}",
+    "customPolicy": "Niestandardowa zasada",
+    "unsaved": "Niezapisane zmiany",
+    "discard": "Odrzuć",
+    "discarded": "Odrzucono zmiany",
+    "refresh": "Odśwież",
+    "selectAll": "Zaznacz wszystko",
+    "deselectAll": "Odznacz wszystko",
+    "selectedCount": "Zaznaczono aplikacji: {count}",
+    "deselectedCount": "Odznaczono aplikacji: {count}",
+    "nothingChanged": "Brak zmian",
+    "more": "Więcej",
+    "autoAdd": "Automatycznie dodawaj nowe aplikacje",
+    "autoAddHint": "Nowo zainstalowane aplikacje będą dodawane do listy celów podczas uruchamiania systemu.",
+    "shortcuts": "Ctrl+A zaznacz wszystko, Ctrl+D odznacz wszystko, Ctrl+F szukaj, Ctrl+S zapisz"
+  },
+  "keybox": {
+    "loadConfirmed": "TEESimulator loading confirmed for this file.",
+    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately.",
+    "repoExternal": "Open the repository in your browser, download a keybox, then import it with Local.",
+    "openBrowser": "Open in browser",
+    "importDownloaded": "Import downloaded file",
+    "aospExpired": "Unavailable: the bundled AOSP EC certificate expired on 2026-01-08.",
+    "status": "Installed keybox",
+    "missing": "No keybox installed",
+    "modified": "Modified",
+    "size": "Size",
+    "path": "Path",
+    "sources": "Install a keybox",
+    "aospHint": "Software keybox from AOSP.",
+    "unknownHint": "Self-signed keybox generated on this device.",
+    "localHint": "keybox.xml from storage.",
+    "repoHint": "Browse the community keybox repository.",
+    "custom": "Custom providers",
+    "customEmpty": "No custom providers yet.",
+    "addProvider": "Add provider",
+    "editProvider": "Edit provider",
+    "url": "URL",
+    "decodeHint": "Allowed steps: cat, base64 -d, xxd -r -p, joined with {'|'}",
+    "import": "Import",
+    "export": "Export",
+    "resetProviders": "Reset to defaults",
+    "installedDetail": "{count} key(s) in {path}",
+    "backup": "Previous keybox saved to {path}",
+    "systemPicker": "Pick with the system file manager",
+    "repoLoading": "Connecting to the keybox repository…",
+    "repoTitle": "Keybox repository",
+    "omkCompatibilityTitle": "OMK keybox compatibility",
+    "omkCompatibilityDescription": "Older OMK builds require both EC and RSA in the keybox. EC-only files, including RKP exports, need the support added in commit b12557c; missing RSA then uses the bundled AOSP RSA chain. Support cannot be verified automatically for the installed build. Continue installing?",
+    "continueInstall": "Continue installation"
+  },
+  "policy": {
+    "none": "Aktywny moduł nie ma domyślnej zasady.",
+    "hint": "Pozostaw pole puste, aby zachować wartość domyślną modułu.",
+    "saved": "Zapisano domyślną zasadę",
+    "restart": "Uruchom ponownie urządzenie, aby zastosować zmienione ustawienia Verified Boot i systemu.",
+    "custom": "Niestandardowa zasada dla tej aplikacji",
+    "fields": {
+      "os_patch": "Poprawka systemu",
+      "vendor_patch": "Poprawka dostawcy (vendor)",
+      "boot_patch": "Poprawka rozruchu (boot)",
+      "os_version": "Wersja systemu",
+      "security_patch": "Poprawka zabezpieczeń",
+      "os_patchlevel": "Poziom poprawki systemu",
+      "vendor_patchlevel": "Poziom poprawki dostawcy",
+      "boot_patchlevel": "Poziom poprawki rozruchu",
+      "vb_key": "Klucz Verified Boot",
+      "vb_hash": "Skrót (hash) Verified Boot",
+      "verified_boot_state": "Stan Verified Boot: zielony (green)",
+      "device_locked": "Zablokowany bootloader",
+      "mode": "Tryb działania",
+      "brand": "Marka",
+      "device": "Urządzenie",
+      "product": "Produkt",
+      "manufacturer": "Producent",
+      "model": "Model",
+      "serial": "Numer seryjny",
+      "imei": "IMEI",
+      "imei2": "IMEI 2",
+      "meid": "MEID",
+      "autoIncludeNewApps": "Automatycznie dołączaj nowe aplikacje"
+    }
+  },
+  "props": {
+    "handlerHint": "Resetuje właściwości bootloadera, Verified Boot i debugowania podczas rozruchu, aby urządzenie wyglądało na zablokowane.",
+    "bootHashHint": "Wartość verifiedBootHash z aplikacji Key Attestation. Pozostaw puste, aby przestać nadpisywać ro.boot.vbmeta.digest.",
+    "invalidHash": "Wprowadź 64 lub 128 znaków szesnastkowych",
+    "synced": "Zapisano również do zasady vb_hash modułu"
+  },
+  "entry": {
+    "title": "Wpis modułu keystore",
+    "description": "Otwórz tę stronę z poziomu WebUI (lub przycisku akcji) modułu {module} w swoim menedżerze roota.",
+    "ownWebui": "Moduł {module} posiada własny interfejs WebUI, więc żaden wpis nie został dodany.",
+    "noModule": "Zainstaluj moduł keystore, aby dodać do niego wpis."
+  },
+  "translations": {
+    "title": "Tłumaczenia Tricky Addon",
+    "version": "Pakiet {version}",
+    "help": "Pomóż w tłumaczeniu",
+    "telegram": "Tricky Addon na Telegramie",
+    "guide": "Menedżer Tricky Store korzysta z tłumaczeń Tricky Addon. Możesz je ulepszyć na platformie [Crowdin](https://crowdin.com/project/TA_utl); opcja *Zaktualizuj pakiet tłumaczeń* pobiera najnowsze wersje bez konieczności aktualizacji modułu.\n\nWszystkie pozostałe teksty tłumaczone są w plikach `locales/*.json` projektu Duck ToolBox. Otwórz Pull Request na [GitHubie]({repository}), aby dodać lub poprawić język."
+  },
+  "help": {
+    "modes": "Tryby",
+    "modesDescription": "Przytrzymaj dłużej wybraną aplikację (lub stuknij jej przycisk konfiguracji), aby wymusić generowanie certyfikatu (`!`), hack liścia/leaf hack (`?`) lub nadać jej własną zasadę. Obsługuje to wyłącznie Tricky Store.",
+    "backends": "Obsługiwane moduły",
+    "backendsDescription": "Tricky Store (config.ini oraz starszy target.txt), TEESimulator (config.json) i OhMyKeymint (injector.toml oraz config.toml). Duck ToolBox zapisuje konfigurację w formacie właściwym dla aktywnego modułu."
+  },
+  "errors": {
+    "no_backend": "Brak zainstalowanego modułu keystore",
+    "invalid_keybox": "Nieprawidłowy keybox",
+    "unsupported_decoder": "Niedozwolony krok dekodowania",
+    "invalid_policy": "Nieprawidłowa wartość zasady",
+    "backend_rule": "Odrzucono przez reguły modułu keystore",
+    "download_failed": "Pobieranie nie powiodło się"
+  },
   "ta": {
     "help_help_instructions": "Instrukcje",
     "help_save_and_update_description": "Zapisz bieżącą konfigurację.",
@@ -82,13 +221,5 @@
     "mode_leaf_hack": "Podmiana certyfikatu",
     "mode_set_custom_policy": "Ustaw niestandardową regułę",
     "mode_use_default_policy": "Użyj domyślnej reguły"
-  },
-  "keybox": {
-    "loadConfirmed": "TEESimulator loading confirmed for this file.",
-    "loadUnchecked": "File written; loading was not confirmed for this backend. Verify separately.",
-    "repoExternal": "Open the repository in your browser, download a keybox, then import it with Local.",
-    "openBrowser": "Open in browser",
-    "importDownloaded": "Import downloaded file",
-    "aospExpired": "Unavailable: the bundled AOSP EC certificate expired on 2026-01-08."
   }
 }

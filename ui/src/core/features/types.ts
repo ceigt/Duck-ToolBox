@@ -39,6 +39,7 @@ export interface SecurityPatchPreview {
   backend: string
   patch: string
   revision: string
+  partitions?: Record<string, string> | null
   changes: { key: string; before: string | null; after: string }[]
 }
 
@@ -46,7 +47,7 @@ export interface SecurityPatchPreview {
 export interface SecurityPatchTarget {
   id: string
   labelKey: string
-  preview(patch: string): Promise<SecurityPatchPreview | null>
+  preview(patch: string, partitions?: Record<string, string>): Promise<SecurityPatchPreview | null>
 }
 
 export type ContributionKey = keyof Contributions

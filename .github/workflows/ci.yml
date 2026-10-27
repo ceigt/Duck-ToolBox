@@ -369,7 +369,7 @@ jobs:
         if: >-
           ${{ !cancelled() && steps.validate-module.outcome == 'success' &&
               (github.ref == 'refs/heads/main' ||
-               (github.repository_owner == 'ceigt' && github.ref == 'refs/heads/renewal-v0.2.0' && inputs.stable)) &&
+               (github.repository_owner == 'ceigt' && startsWith(github.ref, 'refs/heads/renewal-v0.2.') && inputs.stable)) &&
               (github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
         env:
           GH_TOKEN: ${{ github.token }}

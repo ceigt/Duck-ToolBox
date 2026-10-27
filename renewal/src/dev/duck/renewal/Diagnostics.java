@@ -9,7 +9,7 @@ import java.util.*;
 final class Diagnostics {
     static final Set<String> SAFE = new HashSet<>(Arrays.asList(
         "operation_busy", "protocol_required", "pending_protocol_locked", "rollback_required",
-        "target_unsupported", "clock_invalid", "no_pending", "invalid_invocation", "unknown_command",
+        "target_unsupported", "backend_changed", "clock_invalid", "no_pending", "invalid_invocation", "unknown_command",
         "unsafe_log", "unsafe_or_oversized_file", "oversized_file", "unowned_run_path", "unowned_backup",
         "backup_changed", "private_key_mismatch", "untrusted_root", "certificate_not_yet_valid",
         "trust_roots_missing", "single_ec_keybox_required", "invalid_chain_length", "invalid_key_encoding",

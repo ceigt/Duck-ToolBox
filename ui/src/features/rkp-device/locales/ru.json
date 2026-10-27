@@ -101,7 +101,7 @@
   },
   "renewal": {
     "title": "Automatic RKP renewal (local build)",
-    "description": "TEESimulator · local check every 6 hours · renew with 24 hours remaining · off by default",
+    "description": "TEESimulator / OhMyKeymint · local check every 6 hours · renew with 24 hours remaining · off by default",
     "state": "Automatic renewal",
     "on": "Enabled",
     "off": "Disabled",
@@ -113,7 +113,7 @@
     "result": "Status",
     "retry": "Retry no earlier than",
     "unsupportedTitle": "Renewal cannot start",
-    "unsupported": "This build requires an active TEESimulator (versionCode ≥ 75) with one default patch profile using keybox.xml, and one locally verifiable Google-rooted P-256 Keybox.",
+    "unsupported": "Requires one active supported backend: TEESimulator code ≥ 75 (one default patch profile, keybox.xml), or ITxiao6666/OhMyKeymint code ≥ 222 (fixed keybox.xml), and a locally verifiable Google-rooted P-256 Keybox. Confirm enable again after migration.",
     "paused": "Automatic work is paused",
     "pausedDescription": "Check the status and certificate files first. A request with an unknown result must not be repeated blindly. The old working file is retained whenever rollback is possible.",
     "privacy": "Expiry checks are offline. Only a due renewal or a pending new certificate uses the network. The CSR contains public provisioning data; the Keybox private key stays on this device. Cleanup touches only unchanged, expired files created by this renewal feature. Module load confirmation does not verify a Play Integrity verdict.",
@@ -122,7 +122,7 @@
     "disable": "Disable renewal",
     "check": "Check now (respect expiry window)",
     "resume": "Resume after manual review",
-    "consent": "Enable future Google RKP requests using the selected protocol when the chain has 24 hours or less remaining? Checks run about every 6 hours while Android is running. At most two attempts per rolling 24 hours; ordinary expiry checks are offline. This calls the same vendor KeyMint interface as manual issuance, whose compatibility depends on firmware. New files are verified, backed up and applied to TEESimulator with load confirmation and rollback. This local build has not completed a live automatic issuance test.",
+    "consent": "Enable future Google RKP requests using the selected protocol when the chain has 24 hours or less remaining? Checks run about every 6 hours while Android is running. At most two attempts per rolling 24 hours; ordinary expiry checks are offline. This calls the same vendor KeyMint interface as manual issuance, whose compatibility depends on firmware. New files are verified, backed up and applied to TEESimulator / OhMyKeymint with load confirmation and rollback. This local build has not completed a live automatic issuance test.",
     "resumeConsent": "Only continue after checking whether the previous request produced a certificate. Resuming after a timeout or crash may allow another request; Google may have accepted the earlier one. Existing cooldowns and request counts remain in force. A pending certificate is reused instead of signing again. After clock correction, wait at least 24 hours; request counts are retained.",
     "results": {
       "disabled": "Disabled",
@@ -136,20 +136,21 @@
       "pending_expired": "Pending certificate is too close to expiry; manual review required",
       "target_changed": "Target or certificate changed; manual review required",
       "new_certificate_revoked": "New certificate is revoked; old file retained",
-      "installing": "Applying new certificate and waiting for TEESimulator",
-      "renewed": "New certificate verified and loaded by TEESimulator",
+      "installing": "Applying new certificate and waiting for TEESimulator / OhMyKeymint",
+      "renewed": "New certificate verified and loaded by TEESimulator / OhMyKeymint",
       "rolled_back": "Replacement was not confirmed; old file restored and loaded",
       "rollback_unconfirmed": "Old file restoration/load could not be confirmed; inspect manually",
       "submission_unknown": "Previous submission result unknown; no automatic retry",
       "submission_review_required": "Issuance failed; manual review required before retry",
       "request_failed_retry": "Request failed; waiting for retry cooldown",
-      "target_unsupported": "TEESimulator/profile is unsupported or inactive",
+      "target_unsupported": "TEESimulator / OhMyKeymint/profile is unsupported or inactive",
       "clock_invalid": "Clock changed or is invalid; inspect time settings",
       "local_check_failed": "Local validation failed; manual review required",
       "manual_resume": "Manually resumed; existing cooldown still applies",
       "storage_review_required": "Owned-file inventory is full; inspect saved artifacts",
       "pending_discarded": "Candidate discarded; request limits preserved",
-      "rollback_absent_unconfirmed": "Original file was absent; file removed, runtime state needs checking"
+      "rollback_absent_unconfirmed": "Original file was absent; file removed, runtime state needs checking",
+      "backend_confirmation_required": "Backend changed; review the target and enable again"
     },
     "chooseProtocol": "Select a previously successful protocol",
     "saveProtocol": "Save interface",
@@ -161,9 +162,11 @@
       "operation_busy": "Another operation is running; retry later",
       "certificate_invalid": "Local certificate validation failed",
       "storage_io_failed": "File I/O failed; check storage and access",
-      "state_or_response_invalid": "Invalid state or response format"
+      "state_or_response_invalid": "Invalid state or response format",
+      "backend_changed": "Old backend has pending work; resolve it before changing backends"
     },
     "recover": "Recover interrupted replacement",
-    "recoverConfirm": "Restore the previous file without enabling renewal or contacting a certificate server. If there was no previous file, its absence is restored and runtime state still needs checking."
+    "recoverConfirm": "Restore the previous file without enabling renewal or contacting a certificate server. If there was no previous file, its absence is restored and runtime state still needs checking.",
+    "omkConsent": "OhMyKeymint: replacing the Keybox retires some attestation keys bound to the previous identity; affected apps may need enrollment again. File rollback cannot restore retired app keys. Load evidence uses fresh watcher logs with stable file, configuration and process identity; it is not a Play Integrity verdict. Accept and enable?"
   }
 }

@@ -97,6 +97,18 @@ fn valid_patch_date(value: &str) -> bool {
 
 pub fn inspect(entries: &BTreeMap<String, String>) -> Vec<Value> {
     let mut warnings = Vec::new();
+    if entries
+        .get("spoofVendingSdk")
+        .and_then(|s| s.parse::<u32>().ok())
+        .is_some_and(|s| s > 0)
+        && entries
+            .get("spoofVendingFinger")
+            .is_some_and(|s| !s.is_empty() && s != "0")
+    {
+        warnings.push(
+            json!({"code":"vending_priority","fields":["spoofVendingSdk","spoofVendingFinger"]}),
+        );
+    }
     if let Some(date) = system_patch(entries) {
         let mut fields = partition_conflicts(entries, date);
         fields.sort_unstable();

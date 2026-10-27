@@ -1,7 +1,7 @@
 name: RKP Renewal release
 on:
   push:
-    branches: [renewal-v0.2.0]
+    branches: [renewal-v0.2.0, renewal-v0.2.1]
   workflow_dispatch:
 permissions:
   contents: write

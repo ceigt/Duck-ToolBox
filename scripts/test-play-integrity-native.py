@@ -35,13 +35,17 @@ with tempfile.TemporaryDirectory(prefix="pif-native-fixture-") as fixture:
     library=java_home / "lib/server"
     stub=root / "android/log.h"
     stub.parent.mkdir()
-    stub.write_text('#pragma once\n#define ANDROID_LOG_DEBUG 3\nint __android_log_print(int,const char*,const char*,...);\n')
+    stub.write_text('#pragma once\n#define ANDROID_LOG_DEBUG 3\n#define ANDROID_LOG_INFO 4\nint __android_log_print(int,const char*,const char*,...);\n')
+    prop_stub=root / "sys/system_properties.h"
+    prop_stub.parent.mkdir()
+    prop_stub.write_text('#pragma once\n#include <cstdint>\nstruct prop_info;\nconst prop_info *__system_property_find(const char *);\nvoid __system_property_read_callback(const prop_info *,void (*)(void *,const char *,const char *,uint32_t),void *);\n')
+    subprocess.run(["javac","-d",str(root),str(ENGINE / "tests/android/os/Build.java")],check=True)
     jni_target=root / "jni-tests"
     subprocess.run([
         os.environ.get("CXX","c++"),"-std=c++23",
         "-I",str(SOURCE),"-I",str(VENDOR),"-I",str(root),
         "-I",str(java_home / "include"),"-I",str(java_home / "include" / host),
-        str(ENGINE / "tests/jni.cpp"),str(SOURCE / "java_injection.cpp"),
+        str(ENGINE / "tests/jni.cpp"),str(SOURCE / "java_injection.cpp"),str(SOURCE / "observation.cpp"),
         "-L",str(library),"-Wl,-rpath,"+str(library),"-ljvm","-o",str(jni_target),
     ],check=True)
-    subprocess.run([str(jni_target)],check=True,timeout=10)
+    subprocess.run([str(jni_target),str(root)],check=True,timeout=10)

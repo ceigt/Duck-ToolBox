@@ -18,6 +18,7 @@ fn properties(raw: &str) -> BTreeMap<String, String> {
 }
 pub fn inspect(engine: &Engine) -> Result<Value> {
     let current = config::current(engine)?;
+    let runtime = crate::observation::read(engine, crate::text(&current, "revision")?);
     let mut error = None;
     let system = if engine.sysroot == std::path::Path::new("/") {
         match command::run(&mut Command::new("getprop"), Duration::from_secs(2)) {
@@ -36,7 +37,9 @@ pub fn inspect(engine: &Engine) -> Result<Value> {
         json!({"field":field,"property":property,"system":system.get(*property),"saved_build":current["entries"].get(*field),"saved_property":current["entries"].get(*property),"observed":null})
     }).collect();
     Ok(
-        json!({"rows":rows,"revision":current["revision"],"read_error":error,"runtime_observed":false,"verdict_verified":false}),
+        json!({"rows":rows,"revision":current["revision"],"read_error":error,
+            "runtime_observed":runtime["processes"].as_array().is_some_and(|p|!p.is_empty()),
+            "processes":runtime["processes"],"runtime_error":runtime["read_error"],"verdict_verified":false}),
     )
 }
 

@@ -267,6 +267,7 @@ fn patch_preview_apply_restore_preserves_each_backends_files() {
             })
             .collect();
         let mut request = crate::patch::Request {
+            partitions: None,
             patch: "2026-10-05".into(),
             revision: String::new(),
             backup: String::new(),

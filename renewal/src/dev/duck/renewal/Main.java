@@ -11,8 +11,8 @@ import java.util.regex.*;
 import org.json.*;
 
 /** app_process boundary; public commands return a redacted Duck envelope. */
-public final class Main implements Renewal.Platform {
-    static final String VERSION = "0.2.0-renewal.4";
+public class Main implements Renewal.Platform {
+    static final String VERSION = "0.2.1-renewal.1";
     final Path module, data, tee;
     Path installTarget;
     Object context;
@@ -20,8 +20,17 @@ public final class Main implements Renewal.Platform {
 
     @Override public long now() { return System.currentTimeMillis(); }
 
+    static boolean active(Path path) {
+        return Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)
+                && !Files.exists(path.resolve("disable")) && !Files.exists(path.resolve("remove"));
+    }
+
+    @Override public String backend() { return "teesimulator"; }
+
     @Override public boolean supported() throws Exception {
         Path teeModule = Paths.get("/data/adb/modules/teesim");
+        if (active(Paths.get("/data/adb/modules/oh_my_keymint"))
+                || active(Paths.get("/data/adb/modules/tricky_store"))) return false;
         if (!Files.isDirectory(teeModule) || Files.exists(teeModule.resolve("disable"))
                 || Files.exists(teeModule.resolve("remove")) || Files.exists(module.resolve("disable"))
                 || Files.exists(module.resolve("remove"))) return false;
@@ -189,7 +198,9 @@ public final class Main implements Renewal.Platform {
             Path module = Paths.get(args[0]), data = Paths.get(args[1]);
             Keybox.safePath(module); Keybox.safePath(data);
             if ("config-lease".equals(command)) { ConfigLease.hold(data, System.in, System.out); return; }
-            Main platform = new Main(module, data, Paths.get("/data/adb/teesim"));
+            Main platform = active(Paths.get("/data/adb/modules/oh_my_keymint"))
+                    ? new Omk(module, data, Paths.get("/"))
+                    : new Main(module, data, Paths.get("/data/adb/teesim"));
             platform.installTarget = "install".equals(command) && args.length == 4
                     ? Paths.get(args[3]) : platform.tee.resolve("keybox.xml");
             Renewal renewal = new Renewal(data.resolve("var/renewal"), data.resolve("var/outputs"),

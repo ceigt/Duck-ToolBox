@@ -29,7 +29,25 @@ async function refresh() {
       >
         {{ t("inspection.unavailable") }}
       </p>
-      <p class="text-muted-foreground mt-3 text-sm">{{ t("inspection.unobserved") }}</p>
+      <p class="text-muted-foreground mt-3 text-sm">
+        {{ t(data.data.value?.runtime_observed ? "inspection.observed" : "inspection.unobserved") }}
+      </p>
+      <p v-if="data.data.value?.runtime_error" role="status" class="mt-2 text-sm">
+        {{ t("inspection.runtimeError") }}
+      </p>
+      <div
+        v-for="process in data.data.value?.processes"
+        :key="process.process"
+        class="mt-3 rounded-xl border p-3 text-sm"
+      >
+        <p class="break-all font-mono text-xs">{{ process.process }} · PID {{ process.pid }}</p>
+        <p v-if="process.observed_at" class="text-muted-foreground mt-1">
+          {{ t("guide.checked") }}: {{ new Date(process.observed_at * 1000).toLocaleString() }}
+        </p>
+        <p class="text-muted-foreground mt-1">
+          {{ t("inspection.hook") }}: {{ t(process.property_hook ? "on" : "off") }}
+        </p>
+      </div>
       <SettingDetails :title="t('inspection.values')" class="mt-3">
         <dl class="flex flex-col gap-4">
           <div
@@ -52,6 +70,19 @@ async function refresh() {
                 <p class="text-muted-foreground text-xs">{{ label }}</p>
                 <p class="mt-1 font-mono break-all">{{ value || t("inspection.unknown") }}</p>
               </div>
+            </dd>
+            <dd
+              v-for="process in data.data.value?.processes"
+              :key="process.process"
+              class="mt-3 border-t pt-2"
+            >
+              <p class="text-muted-foreground break-all font-mono text-xs">{{ process.process }}</p>
+              <p class="mt-1 break-all font-mono text-xs">
+                Build: {{ process.build[row.field] || t("inspection.unknown") }}
+              </p>
+              <p class="mt-1 break-all font-mono text-xs">
+                Props: {{ process.properties[row.property] || t("inspection.unknown") }}
+              </p>
             </dd>
           </div>
         </dl>

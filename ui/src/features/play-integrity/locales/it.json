@@ -94,7 +94,9 @@
     "mismatch": "Build e la proprietà corrispondente hanno valori espliciti diversi.",
     "provider": "La compatibilità Provider blocca le catene di certificati. Verificarne la necessità.",
     "wildcard": "Wildcard non supportato: è implementato solo * iniziale per il suffisso.",
-    "canary": "Canary mantiene le euristiche originali: Pixel 10a usa API 35 (nota: reale 36), dispositivi sconosciuti 37, board API 32. Le sei settimane e il livello patch alternativo sono stime, non accettazione Google né validità dei certificati."
+    "canary": "Canary mantiene le euristiche originali: Pixel 10a usa API 35 (nota: reale 36), dispositivi sconosciuti 37, board API 32. Le sei settimane e il livello patch alternativo sono stime, non accettazione Google né validità dei certificati.",
+    "vending_priority": "La compatibilità SDK del Play Store ha la precedenza sull’impronta.",
+    "pixel_patch_unknown": "I metadati Google non forniscono la data esatta della patch; il candidato la lascia vuota."
   },
   "strongHelp": "Imposta spoofProvider=0 per il candidato. I valori patch Build e proprietà restano coerenti; nessun esito è garantito.",
   "recoveryTitle": "Aggiornamento configurazione interrotto",
@@ -150,7 +152,10 @@
     "unobserved": "I valori nel processo di destinazione non sono stati osservati. Queste letture non dimostrano l’iniezione né un verdetto Google.",
     "values": "Mostra confronto dei campi",
     "system": "Valore di sistema attuale",
-    "unknown": "Non disponibile / non impostato"
+    "unknown": "Non disponibile / non impostato",
+    "observed": "La revisione e un processo attivo di questo avvio corrispondono. Diagnostica locale, non un verdetto Google.",
+    "runtimeError": "Letture dei processi non disponibili. Apri o riavvia le app di destinazione e aggiorna.",
+    "hook": "Hook del callback delle proprietà installato"
   },
   "history": {
     "title": "Cronologia dei test",
@@ -167,7 +172,13 @@
     "fail": "Fallito (dichiarato)",
     "context": "Configurazione alla registrazione",
     "clear": "Cancella cronologia",
-    "clearHelp": "Tutte le osservazioni manuali verranno rimosse. Le configurazioni saranno mantenute."
+    "clearHelp": "Tutte le osservazioni manuali verranno rimosse. Le configurazioni saranno mantenute.",
+    "omitted": "Non restituito · motivo sconosciuto",
+    "import": "Importa rapporto decodificato",
+    "importHelp": "Incolla il JSON Play Integrity decodificato. Vengono conservati solo etichette e dati di app e licenza. Le etichette mancanti non sono errori.",
+    "report": "Rapporto di integrità decodificato JSON",
+    "installationSource": "Origine di installazione dell’app di test (facoltativa)",
+    "unverified": "Rapporto importato dall’utente; autenticità non verificata."
   },
   "guide": {
     "title": "Regole e riferimenti",
@@ -179,5 +190,38 @@
     "community": "A ottobre 2026 sono stati segnalati miglioramenti disattivando PIF e successi con alcune configurazioni. Anche PixelOS ha segnalato un cambiamento lato server. I controlli esatti non sono pubblici; non è dimostrato un blocco universale dei Pixel né un successo garantito con API 32–35.",
     "canary": "Scarica un candidato Pixel Canary. Più recente non significa più adatto al dispositivo. La generazione prepara solo un’anteprima.",
     "import": "Usa una configurazione importata o personalizzata"
+  },
+  "pixel": {
+    "title": "Impronte Pixel",
+    "help": "Scarica i metadati delle versioni ufficiali Google, scegli dispositivo e build e visualizza l’anteprima. Pixel 6a è preselezionato; non garantisce l’esito.",
+    "device": "Dispositivo Pixel",
+    "build": "Build ufficiale",
+    "fetch": "Scarica build Pixel",
+    "loading": "Caricamento…",
+    "patchUnknown": "La data esatta della patch è sconosciuta e non viene stimata né sincronizzata.",
+    "preview": "Anteprima dell’impronta selezionata"
+  },
+  "quick": {
+    "title": "Controlli dell’impronta",
+    "vending": "Modalità di sostituzione Play Store",
+    "vendingHelp": "La modalità impronta modifica solo FINGERPRINT. La compatibilità SDK ha la precedenza.",
+    "off": "Disattivata",
+    "fingerprint": "Usa l’impronta configurata",
+    "custom": "Impronta Play Store personalizzata",
+    "sdk": "Limite di compatibilità SDK",
+    "all": "Prepara le tre sostituzioni",
+    "draft": "Le modifiche riguardano la bozza. Visualizza l’anteprima e applica per salvare."
+  },
+  "activation": {
+    "reboot": "Configurazione salvata. Riavvia il dispositivo; riavviare i processi PI non è sufficiente.",
+    "process": "Configurazione salvata. Riavvia i processi PI per caricare i nuovi valori."
+  },
+  "patch": {
+    "help": "Modifica la politica di attestazione, senza installare aggiornamenti. Le partizioni non selezionate restano invariate.",
+    "system": "Patch di sistema",
+    "vendor": "Patch Vendor",
+    "boot": "Patch Boot",
+    "preview": "Aggiorna anteprima patch",
+    "draft": "Controlla le modifiche delle partizioni prima di selezionare la sincronizzazione."
   }
 }

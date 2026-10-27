@@ -94,7 +94,9 @@
     "mismatch": "Build 字段与对应系统属性设置了不同值。",
     "provider": "Provider 兼容会阻止证书链请求，请确认当前方案是否需要。",
     "wildcard": "不支持此通配符写法：仅实现开头 * 的后缀匹配。",
-    "canary": "Canary 保留上游经验规则：Pixel 10a 使用 API 35（上游注释实际为 36），未知机型使用 37，board API 使用 32。六周失效日期及补丁回退值均为估计，不代表 Google 接受或证书有效期。"
+    "canary": "Canary 保留上游经验规则：Pixel 10a 使用 API 35（上游注释实际为 36），未知机型使用 37，board API 使用 32。六周失效日期及补丁回退值均为估计，不代表 Google 接受或证书有效期。",
+    "vending_priority": "已启用 Play 商店 SDK 兼容，其优先级高于商店指纹替换。",
+    "pixel_patch_unknown": "Google 构建元数据未提供精确安全补丁日期，候选配置将其留空。"
   },
   "strongHelp": "为候选设置 spoofProvider=0；保留一致的 Build／属性补丁值，不保证完整性判定结果。",
   "recoveryTitle": "配置更新中断",
@@ -150,7 +152,10 @@
     "unobserved": "尚未观测目标进程内的值。这些读数不能证明注入成功或 Google 判定结果。",
     "values": "查看字段对照",
     "system": "当前系统读数",
-    "unknown": "未读取／未设置"
+    "unknown": "未读取／未设置",
+    "observed": "读回数据已匹配保存的配置版本及本次启动中的存活进程；属于本地诊断，不代表 Google 判定。",
+    "runtimeError": "无法读取进程观测数据，请重启或打开目标应用后刷新。",
+    "hook": "属性回调 hook 已安装"
   },
   "history": {
     "title": "测试记录",
@@ -167,7 +172,13 @@
     "fail": "未通过（手动记录）",
     "context": "记录时的配置",
     "clear": "清空测试记录",
-    "clearHelp": "移除全部手动测试记录，保留配置方案。"
+    "clearHelp": "移除全部手动测试记录，保留配置方案。",
+    "omitted": "未返回 · 原因未知",
+    "import": "导入已解码报告",
+    "importHelp": "粘贴已解码的 Play Integrity JSON，仅保留判定标签及应用、许可信息。缺失标签不会自动记为失败。",
+    "report": "已解码的完整性报告 JSON",
+    "installationSource": "检测应用安装来源（可选）",
+    "unverified": "报告由用户导入，尚未验证真实性。"
   },
   "guide": {
     "title": "规则与依据",
@@ -179,5 +190,38 @@
     "community": "2026 年 10 月的记录包含关闭 PIF 后改善、特定配置仍有效等不同结果，PixelOS 也报告了服务端变化。具体检查未公开，尚不能归纳成 Pixel 全封或 API 32–35 必过。",
     "canary": "这里获取的是 Pixel Canary 候选，更新不一定更适合当前设备。生成后先预览，不会直接应用。",
     "import": "使用导入或自定义配置"
+  },
+  "pixel": {
+    "title": "Pixel 指纹获取",
+    "help": "获取 Google 正式版构建元数据，选择机型和构建后预览。默认选择 Pixel 6a；不代表已获 Google 完整性认可。",
+    "device": "Pixel 设备",
+    "build": "正式版构建",
+    "fetch": "获取 Pixel 构建",
+    "loading": "获取中…",
+    "patchUnknown": "无法确定精确安全补丁日期，不推测或同步补丁日期。",
+    "preview": "预览所选指纹"
+  },
+  "quick": {
+    "title": "指纹快捷配置",
+    "vending": "Play 商店替换模式",
+    "vendingHelp": "商店指纹模式只替换 FINGERPRINT。SDK 兼容模式优先于指纹替换。",
+    "off": "关闭",
+    "fingerprint": "使用配置中的指纹",
+    "custom": "自定义 Play 商店指纹",
+    "sdk": "SDK 兼容上限",
+    "all": "准备开启三项替换",
+    "draft": "修改仅作用于草稿，预览并应用后才会保存。"
+  },
+  "activation": {
+    "reboot": "配置已保存，请重启设备完成生效；重启 PI 进程不能清除此要求。",
+    "process": "配置已保存，请重启 PI 进程加载新值。"
+  },
+  "patch": {
+    "help": "修改的是证明策略，不是安装安全更新。未选择的分区保留原配置。",
+    "system": "系统补丁",
+    "vendor": "Vendor 补丁",
+    "boot": "Boot 补丁",
+    "preview": "更新补丁预览",
+    "draft": "分区修改尚未预览，请先更新预览，再选择同步。"
   }
 }

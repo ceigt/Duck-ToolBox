@@ -7,6 +7,8 @@ import type { RenewalStatus } from "./renewal"
 const OUT = "/data/adb/duck-toolbox/var/outputs/rkp-device-1750000000000"
 const renewal: RenewalStatus = {
   enabled: false,
+  backend: "teesimulator",
+  target_path: "/data/adb/teesim/keybox.xml",
   protocol: "v2",
   protocol_configured: false,
   phase: "idle",

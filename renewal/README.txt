@@ -1,5 +1,5 @@
-Duck ToolBox 0.2.0-renewal.4 — Fork 测试版
-原项目：https://github.com/eltavine/Duck-ToolBox/tree/v0.2.0-Stable
+Duck ToolBox 0.2.1-renewal.1 — Fork 测试版
+原项目：https://github.com/eltavine/Duck-ToolBox/tree/v0.2.1-Stable
 原作者：Eltavine、KOW、MhmRdd；原 MIT 许可保留于 LICENSE。
 Fork 源码与构建：https://github.com/ceigt/Duck-ToolBox
 此包不是原作者发布的正式版本。保留上游独立 GPLv3 Play Integrity 引擎及许可。
@@ -22,11 +22,12 @@ Fork 源码与构建：https://github.com/ceigt/Duck-ToolBox
    也不能保证不会被服务器限流。首次无法确定请求结果时会暂停。
 
 自动续签兼容范围
+- 以下 TEESimulator 配置限制只针对该后端；OhMyKeymint 适配见下一节。
 - 此安装包仅包含 arm64 原生后端，针对已检查的一加 Ace 3 / Android 16。
 - 需要 root、TEESimulator 已启用且 versionCode 至少为 75。
 - 只支持 version=1 配置、单个 default 配置、mode=patch、keybox=keybox.xml。
 - 现有和新的 Keybox 必须为一把 ECDSA P-256 密钥和完整 Google 根证书链。
-  不支持本地自签链、多配置、RSA+EC 混合 Keybox 或其他模块的自动续签。
+  不支持本地自签链、多配置、RSA+EC 混合 Keybox；OhMyKeymint 范围见适配节。
 - 当前手机证书的 CSR 形状已在本地确认属于 V1；它本身不能区分 AIDL V1
   与 Native V1。请按上次成功签发时的记录选择接口，不要默认选择 V2。
   如果不知道上次使用的接口，先保持续签关闭，核对成功记录后再开启。
@@ -66,7 +67,8 @@ Fork 源码与构建：https://github.com/ceigt/Duck-ToolBox
 - 新功能的状态只包含时间、状态码、路径和文件摘要；不记录 PEM、XML、CSR。
 - 私有状态、备份和清单：/data/adb/duck-toolbox/var/renewal（root 专用）。
 - 原生签发输出：/data/adb/duck-toolbox/var/outputs/rkp-device-*。
-- 应用目标：/data/adb/teesim/keybox.xml。
+- 应用目标：TEESimulator 为 /data/adb/teesim/keybox.xml；
+  OhMyKeymint 为 /data/misc/keystore/omk/keybox.xml。
 - 本次交付包和源码不包含这台手机的 Keybox、CSR、证书或私钥。
 
 安装与回退
@@ -81,7 +83,7 @@ Fork 源码与构建：https://github.com/ceigt/Duck-ToolBox
    原来的 Duck 数据目录中；卸载 Duck 会按原项目行为删除该数据目录。
 
 验证范围
-- 本版基于上游 v0.2.0-Stable（273f49f18f28903cae395850abc85ed36a3b9a75）。
+- 本版基于上游 v0.2.1-Stable（c190e2261bd851386ec9d37a1a995fb1fdf6816b）。
 - GitHub Actions 运行原生后端、前端、模块脚本、独立引擎和续签合成数据测试。
   每个安装包的构建与测试结果见对应 Actions 运行记录。
 - 续签后台使用临时合成证书进行离线测试；CI 不连接手机或 Google 进行签发。
@@ -92,6 +94,24 @@ Fork 源码与构建：https://github.com/ceigt/Duck-ToolBox
 - 从旧版迁移会保留续签状态及 TEESimulator 配置；一加 Ace 3 的
   ace3 attestation product correction 模块仍应保持启用。
 
+OhMyKeymint 适配（ITxiao6666 分支）
+- 已对照 bafe5baa62ebdb1765685a4520f3a9db32ca2e3a 的加载协议开发。
+- 支持启用的 oh_my_keymint 模块 code>=222；TEESimulator 和 Tricky Store
+  必须停用。目标固定为 /data/misc/keystore/omk/keybox.xml，仍要求单 EC/P-256、
+  Google 受信任链及密钥匹配；不会编辑 OMK 的 trust、crypto、injector 或 Soter 设置。
+- 开启授权绑定后端。迁移后面板要求重新确认；未完成候选和恢复事务不能跨后端写入。
+  旧请求预算和冷却继续保留。不要手工删除状态绕过暂停或请求限制。
+- 注意：OMK 更换 Keybox 身份会清理绑定旧身份的部分证明密钥，应用可能需重新注册。
+  Duck 的文件回滚只能恢复 Keybox，不能恢复 OMK 已清理的应用密钥。
+- 原子替换保留原文件 uid/gid 与 SELinux 标签；不重启 KeyMint 或修改系统属性。
+- 加载证据：替换前记录日志游标，等待新 watcher 成功事件且 fallback=false，核对
+  文件摘要、配置摘要、进程 PID/starttime；轮转、重启、外部改动或超时即拒绝确认。
+  OMK 日志没有候选摘要 ACK，该证据依赖 watcher 日志和期间没有外部 root 写入；
+  不是独立的证明请求或 Google verdict。日志关闭/丢弃时会无法确认并尝试文件回滚。
+- Duck 的 OMK 配置和手动安装写入同样遵守续签互斥锁。OMK 自己的 WebUI 和其他
+  root 工具不使用 Duck 的锁，请避免与续签同时导入/签发/修改配置。
+- 新增 pl/uk 的定制文字使用显式英文回退；中文和英文包含 OMK 风险与迁移说明。
+
 源码结构与复现
 renewal/src/dev/duck/renewal/Keybox.java：本地证书与路径检查。
 renewal/src/dev/duck/renewal/Renewal.java：可测试的持久化续签/事务状态机。
@@ -100,6 +120,7 @@ module/bin/duckctl.sh、renewal-scheduler.sh：命令入口与后台调度。
 ui/src/features/rkp-device：面板、接口与中英文文字；其他语言沿用新增英文内容。
 
 原生 duckd 必须从本版源码重新编译，不能复用旧版或原版二进制。
+renewal/src/dev/duck/renewal/Omk.java：OMK watcher 证据、进程与配置一致性检查。
 新版本需要 Rust 1.89+、Android NDK r30 / API 26，构建目标 aarch64-linux-android。
 原生签发、网络下载、设备 ID、手动安装均有源代码改动。
 根证书为 Google 的公开 attestation 根证书；未来轮换可能需要更新该公开文件。
@@ -144,7 +165,7 @@ ui/src/features/rkp-device：面板、接口与中英文文字；其他语言沿
 - 离线测试入口：python renewal/test.py --java-home <JDK> --json-jar <json.jar>。
   使用现场生成的合成证书，不连接手机、不向 Google 请求证书。
 
-安装不会替换现用证书或 TEESimulator 配置；已有续签开启状态会继续生效。
+安装不会替换现用证书或 TEESimulator 配置；同一后端的续签开启状态继续生效；迁移后端需重新确认开启。
 当前证书的加载确认已验证；其他配置组合和中断恢复使用合成数据测试，
 真实到期签发、自动新证书替换与回滚的故障注入仍未完成。
 内置公开 AOSP 示例证书已于 2026 年 1 月到期；可离线解析，但安装校验会拒绝。

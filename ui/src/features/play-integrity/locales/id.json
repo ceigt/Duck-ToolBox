@@ -94,7 +94,9 @@
     "mismatch": "Build dan properti terkait memiliki nilai eksplisit yang berbeda.",
     "provider": "Kompatibilitas Provider memblokir rantai sertifikat. Periksa apakah dibutuhkan.",
     "wildcard": "Pola tidak didukung: hanya * awal untuk akhiran yang diterapkan.",
-    "canary": "Canary mempertahankan heuristik hulu: Pixel 10a memakai API 35 (catatan: aktual 36), perangkat tidak dikenal 37, board API 32. Enam minggu dan patch cadangan adalah perkiraan, bukan penerimaan Google atau masa berlaku sertifikat."
+    "canary": "Canary mempertahankan heuristik hulu: Pixel 10a memakai API 35 (catatan: aktual 36), perangkat tidak dikenal 37, board API 32. Enam minggu dan patch cadangan adalah perkiraan, bukan penerimaan Google atau masa berlaku sertifikat.",
+    "vending_priority": "Kompatibilitas SDK Play Store mengesampingkan penggantian sidik jari.",
+    "pixel_patch_unknown": "Metadata Google tidak memberikan tanggal patch yang tepat; kandidat membiarkannya kosong."
   },
   "strongHelp": "Mengatur spoofProvider=0 untuk kandidat ini. Nilai patch Build dan properti tetap selaras; hasil tidak dijamin.",
   "recoveryTitle": "Pembaruan konfigurasi terhenti",
@@ -150,7 +152,10 @@
     "unobserved": "Nilai dalam proses target belum diamati. Pembacaan ini tidak membuktikan injeksi atau putusan Google.",
     "values": "Tampilkan perbandingan kolom",
     "system": "Pembacaan sistem saat ini",
-    "unknown": "Tidak tersedia / tidak diatur"
+    "unknown": "Tidak tersedia / tidak diatur",
+    "observed": "Revisi dan proses aktif pada boot ini cocok. Ini diagnostik lokal, bukan putusan Google.",
+    "runtimeError": "Pembacaan proses tidak tersedia. Buka atau mulai ulang aplikasi tujuan lalu segarkan.",
+    "hook": "Hook callback properti terpasang"
   },
   "history": {
     "title": "Riwayat pengujian",
@@ -167,7 +172,13 @@
     "fail": "Gagal (dilaporkan)",
     "context": "Konfigurasi saat pencatatan",
     "clear": "Hapus riwayat",
-    "clearHelp": "Semua catatan pengujian manual akan dihapus. Konfigurasi tetap disimpan."
+    "clearHelp": "Semua catatan pengujian manual akan dihapus. Konfigurasi tetap disimpan.",
+    "omitted": "Tidak dikembalikan · alasan tidak diketahui",
+    "import": "Impor laporan terdekode",
+    "importHelp": "Tempel JSON Play Integrity terdekode. Hanya label serta informasi aplikasi dan lisensi yang disimpan. Label yang hilang tidak dianggap gagal.",
+    "report": "Laporan integritas terdekode JSON",
+    "installationSource": "Sumber pemasangan aplikasi uji (opsional)",
+    "unverified": "Laporan diimpor pengguna; keaslian belum diverifikasi."
   },
   "guide": {
     "title": "Aturan dan referensi",
@@ -179,5 +190,38 @@
     "community": "Laporan Oktober 2026 mencakup perbaikan setelah PIF dimatikan dan keberhasilan konfigurasi tertentu. PixelOS juga melaporkan perubahan server. Pemeriksaan terperinci tidak dipublikasikan; pemblokiran semua Pixel atau kelulusan API 32–35 belum terbukti.",
     "canary": "Mengunduh kandidat Pixel Canary. Lebih baru belum tentu lebih sesuai untuk perangkat. Pembuatan hanya menyiapkan pratinjau.",
     "import": "Gunakan konfigurasi impor atau kustom"
+  },
+  "pixel": {
+    "title": "Sidik jari Pixel",
+    "help": "Ambil metadata rilis resmi Google, pilih perangkat dan build, lalu tinjau. Pilihan awal Pixel 6a; tidak menjamin kelulusan.",
+    "device": "Perangkat Pixel",
+    "build": "Build rilis",
+    "fetch": "Ambil build Pixel",
+    "loading": "Mengambil…",
+    "patchUnknown": "Tanggal patch keamanan yang tepat tidak diketahui; tidak akan ditebak atau disinkronkan.",
+    "preview": "Tinjau sidik jari terpilih"
+  },
+  "quick": {
+    "title": "Pengaturan sidik jari",
+    "vending": "Mode penggantian Play Store",
+    "vendingHelp": "Mode sidik jari hanya mengubah FINGERPRINT. Kompatibilitas SDK diprioritaskan.",
+    "off": "Nonaktif",
+    "fingerprint": "Gunakan sidik jari konfigurasi",
+    "custom": "Sidik jari Play Store khusus",
+    "sdk": "Batas kompatibilitas SDK",
+    "all": "Siapkan ketiga penggantian",
+    "draft": "Perubahan hanya pada draf. Tinjau dan terapkan untuk menyimpan."
+  },
+  "activation": {
+    "reboot": "Konfigurasi disimpan. Mulai ulang perangkat; memulai ulang proses PI tidak cukup.",
+    "process": "Konfigurasi disimpan. Mulai ulang proses PI untuk memuat nilai baru."
+  },
+  "patch": {
+    "help": "Mengubah kebijakan pengesahan, bukan memasang pembaruan. Partisi yang tidak dipilih tetap dipertahankan.",
+    "system": "Patch sistem",
+    "vendor": "Patch Vendor",
+    "boot": "Patch Boot",
+    "preview": "Perbarui pratinjau patch",
+    "draft": "Tinjau perubahan partisi sebelum memilih sinkronisasi."
   }
 }

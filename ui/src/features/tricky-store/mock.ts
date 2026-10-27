@@ -174,17 +174,28 @@ const mock: MockModule = {
     "tricky-store.patch.preview": (_args, _flags, input) => {
       requireBackend()
       const patch = (input as { patch: string }).patch
+      const partitions = (input as { partitions?: Record<string, string> }).partitions
       return {
         backend,
         patch,
+        partitions: partitions ?? null,
         revision: "mock-revision",
-        changes: [
-          {
-            key: "os_patch",
-            before: saved.default_policy.os_patch ?? null,
-            after: patch.slice(0, 7).replaceAll("-", ""),
-          },
-        ],
+        changes: partitions
+          ? Object.entries(partitions).map(([scope, date]) => ({
+              key: `${scope === "system" ? "os" : scope}_patch`,
+              before: null,
+              after:
+                scope === "system"
+                  ? date.slice(0, 7).replaceAll("-", "")
+                  : date.replaceAll("-", ""),
+            }))
+          : [
+              {
+                key: "os_patch",
+                before: saved.default_policy.os_patch ?? null,
+                after: patch.slice(0, 7).replaceAll("-", ""),
+              },
+            ],
       }
     },
     "tricky-store.patch.apply": () => {

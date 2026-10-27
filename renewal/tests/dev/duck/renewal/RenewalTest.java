@@ -21,8 +21,10 @@ public final class RenewalTest {
         int requests, crls, acknowledgements;
         boolean online = true, supported = true, crlFailure, timeout, crashAfterSwap, refuseNew, revoked;
         String failure;
+        String backend = "teesimulator";
         Path outputs;
         public long now() { return time; }
+        public String backend() { return backend; }
         public boolean supported() { return supported; }
         public boolean online() { return online; }
         public JSONObject issue(String protocol) throws Exception {

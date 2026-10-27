@@ -10,6 +10,7 @@
 #include "settings.hpp"
 #include "property_hook.hpp"
 #include "java_injection.hpp"
+#include "observation.hpp"
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, "PIF/Native", __VA_ARGS__)
 
 class PlayIntegrityFix : public zygisk::ModuleBase {
@@ -34,12 +35,15 @@ public:
         if(!config.is_object()||config.empty()) {unload();return;}
         api->setOption(zygisk::FORCE_DENYLIST_UNMOUNT);
         if(process!="com.google.android.gms.unstable" && process!="com.android.vending") {unload();return;}
+        raw=std::move(content);boot=pif::bootIdentity();start=pif::processStart();
         settings=pif::settings(std::move(config),process=="com.android.vending");ready=true;
     }
     void postAppSpecialize(const zygisk::AppSpecializeArgs *) override {
         if(!ready) return;
-        if(settings.spoofProps) hooks.install(settings);
+        const bool propertyHook=settings.spoofProps && hooks.install(settings);
         if(settings.injectJava()) java.initialize(env,std::move(dex),settings);
+        pif::observe(env,raw,process,boot,start,propertyHook);
+        std::string().swap(raw);
         LOGD("Specialization initialized for %s",process.c_str());
     }
     void preServerSpecialize(zygisk::ServerSpecializeArgs *) override {unload();}
@@ -49,6 +53,7 @@ private:
     JNIEnv *env=nullptr;
     bool ready=false;
     std::string process;
+    std::string raw,boot,start;
     std::vector<char> dex;
     pif::Settings settings;
     pif::PropertyHook hooks;

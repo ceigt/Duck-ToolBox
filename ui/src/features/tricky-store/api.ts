@@ -133,13 +133,14 @@ const patchPreviewSchema = z.object({
   backend: z.string(),
   patch: z.string(),
   revision: z.string(),
+  partitions: z.record(z.string(), z.string()).nullable().optional(),
   changes: z.array(z.object({ key: z.string(), before: z.string().nullable(), after: z.string() })),
 })
 const keybox = (...args: string[]) => ts("keybox", ...args)
 
 export const trickyStoreApi = {
-  patchPreview: (patch: string) =>
-    duckd(ts("patch", "preview"), { input: { patch }, schema: patchPreviewSchema }),
+  patchPreview: (patch: string, partitions?: Record<string, string>) =>
+    duckd(ts("patch", "preview"), { input: { patch, partitions }, schema: patchPreviewSchema }),
   patchApply: (preview: z.infer<typeof patchPreviewSchema>) =>
     duckd(ts("patch", "apply"), {
       input: preview,

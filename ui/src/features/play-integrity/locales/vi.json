@@ -94,7 +94,9 @@
     "mismatch": "Build và thuộc tính tương ứng có các giá trị rõ ràng khác nhau.",
     "provider": "Tương thích Provider chặn chuỗi chứng chỉ. Hãy kiểm tra cấu hình có cần nó không.",
     "wildcard": "Mẫu không hỗ trợ: chỉ triển khai * ở đầu để khớp hậu tố.",
-    "canary": "Canary giữ kinh nghiệm thượng nguồn: Pixel 10a dùng API 35 (ghi chú thực tế 36), máy chưa biết dùng 37, board API 32. Sáu tuần và mức vá dự phòng là ước tính, không phải sự chấp nhận của Google hay hạn chứng chỉ."
+    "canary": "Canary giữ kinh nghiệm thượng nguồn: Pixel 10a dùng API 35 (ghi chú thực tế 36), máy chưa biết dùng 37, board API 32. Sáu tuần và mức vá dự phòng là ước tính, không phải sự chấp nhận của Google hay hạn chứng chỉ.",
+    "vending_priority": "Tương thích SDK của Play Store được ưu tiên hơn ghi đè dấu vân tay.",
+    "pixel_patch_unknown": "Dữ liệu Google không cung cấp ngày bản vá chính xác; cấu hình đề xuất để trống ngày."
   },
   "strongHelp": "Đặt spoofProvider=0 cho ứng viên. Giữ mức vá Build và thuộc tính nhất quán; không bảo đảm kết quả.",
   "recoveryTitle": "Cập nhật cấu hình bị gián đoạn",
@@ -150,7 +152,10 @@
     "unobserved": "Chưa quan sát giá trị trong tiến trình đích. Các số liệu này không chứng minh việc chèn thành công hay kết quả Google.",
     "values": "Xem đối chiếu trường",
     "system": "Giá trị hệ thống hiện tại",
-    "unknown": "Chưa đọc / chưa đặt"
+    "unknown": "Chưa đọc / chưa đặt",
+    "observed": "Đã khớp phiên bản cấu hình và tiến trình đang chạy trong lần khởi động này. Đây là chẩn đoán cục bộ, không phải kết quả Google.",
+    "runtimeError": "Không đọc được tiến trình. Mở hoặc khởi động lại ứng dụng đích rồi làm mới.",
+    "hook": "Đã cài hook hàm gọi lại thuộc tính"
   },
   "history": {
     "title": "Lịch sử kiểm tra",
@@ -167,7 +172,13 @@
     "fail": "Không đạt (tự ghi nhận)",
     "context": "Cấu hình khi ghi nhận",
     "clear": "Xóa lịch sử",
-    "clearHelp": "Xóa toàn bộ bản ghi kiểm tra thủ công. Giữ lại các cấu hình."
+    "clearHelp": "Xóa toàn bộ bản ghi kiểm tra thủ công. Giữ lại các cấu hình.",
+    "omitted": "Không trả về · chưa rõ lý do",
+    "import": "Nhập báo cáo đã giải mã",
+    "importHelp": "Dán JSON Play Integrity đã giải mã. Chỉ giữ nhãn cùng dữ liệu ứng dụng và giấy phép. Nhãn thiếu không được xem là thất bại.",
+    "report": "Báo cáo tính toàn vẹn đã giải mã JSON",
+    "installationSource": "Nguồn cài ứng dụng kiểm tra (tùy chọn)",
+    "unverified": "Báo cáo do người dùng nhập; chưa xác minh tính xác thực."
   },
   "guide": {
     "title": "Quy tắc và nguồn",
@@ -179,5 +190,38 @@
     "community": "Tháng 10/2026 có báo cáo cải thiện sau khi tắt PIF và thành công với một số cấu hình. PixelOS cũng báo cáo thay đổi phía máy chủ. Các phép kiểm tra cụ thể chưa công khai; chưa thể kết luận chặn mọi Pixel hay API 32–35 luôn đạt.",
     "canary": "Tải cấu hình ứng viên Pixel Canary. Mới hơn không nhất thiết phù hợp thiết bị hơn. Chỉ tạo bản xem trước, không áp dụng trực tiếp.",
     "import": "Dùng cấu hình nhập hoặc tùy chỉnh"
+  },
+  "pixel": {
+    "title": "Dấu vân tay Pixel",
+    "help": "Lấy dữ liệu bản phát hành chính thức của Google, chọn thiết bị và bản dựng rồi xem trước. Mặc định là Pixel 6a; không bảo đảm vượt kiểm tra.",
+    "device": "Thiết bị Pixel",
+    "build": "Bản dựng chính thức",
+    "fetch": "Lấy bản dựng Pixel",
+    "loading": "Đang lấy…",
+    "patchUnknown": "Không rõ ngày bản vá bảo mật chính xác; không suy đoán hay đồng bộ ngày.",
+    "preview": "Xem trước dấu vân tay đã chọn"
+  },
+  "quick": {
+    "title": "Thiết lập dấu vân tay",
+    "vending": "Chế độ ghi đè Play Store",
+    "vendingHelp": "Chế độ dấu vân tay chỉ đổi FINGERPRINT. Tương thích SDK được ưu tiên.",
+    "off": "Tắt",
+    "fingerprint": "Dùng dấu vân tay đã cấu hình",
+    "custom": "Dấu vân tay Play Store tùy chỉnh",
+    "sdk": "Giới hạn tương thích SDK",
+    "all": "Chuẩn bị cả ba mục ghi đè",
+    "draft": "Thay đổi chỉ áp dụng cho bản nháp. Xem trước và áp dụng để lưu."
+  },
+  "activation": {
+    "reboot": "Đã lưu cấu hình. Hãy khởi động lại thiết bị; khởi động lại tiến trình PI là chưa đủ.",
+    "process": "Đã lưu cấu hình. Khởi động lại tiến trình PI để tải các giá trị mới."
+  },
+  "patch": {
+    "help": "Thay đổi chính sách chứng thực, không cài bản cập nhật. Giữ nguyên các phân vùng chưa chọn.",
+    "system": "Bản vá hệ thống",
+    "vendor": "Bản vá Vendor",
+    "boot": "Bản vá Boot",
+    "preview": "Cập nhật xem trước bản vá",
+    "draft": "Xem trước thay đổi phân vùng trước khi chọn đồng bộ."
   }
 }

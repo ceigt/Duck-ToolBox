@@ -13,6 +13,7 @@ final class Renewal {
     static final long HOUR = 3600000L, CHECK = 6 * HOUR, LEAD = 24 * HOUR;
     interface Platform {
         long now();
+        default String backend() { return "teesimulator"; }
         boolean supported() throws Exception;
         default boolean manualSupported() throws Exception { return supported(); }
         boolean online() throws Exception;
@@ -42,17 +43,26 @@ final class Renewal {
     }
 
     boolean enabled() throws Exception {
+        return requested() && backendMatches();
+    }
+
+    boolean backendMatches() {
+        return platform.backend().equals(state.optString("backend", "teesimulator"));
+    }
+
+    boolean requested() throws Exception {
         Path file = root.resolve("enabled");
         return Files.exists(file, LinkOption.NOFOLLOW_LINKS) && Arrays.equals(Keybox.readFile(file, 8), new byte[]{'1'});
     }
 
     JSONObject status() throws Exception {
         JSONObject result = new JSONObject().put("enabled", enabled())
+                .put("backend", platform.backend()).put("target_path", target.toString())
                 .put("protocol", state.optString("protocol", "v2"))
                 .put("protocol_configured", state.optBoolean("protocol_configured") || enabled()
                         || state.optLong("last_check") > 0 || state.has("pending"))
                 .put("phase", state.optString("phase", "idle"))
-                .put("result", state.optString("result", "disabled"))
+                .put("result", requested() && !backendMatches() ? "backend_confirmation_required" : state.optString("result", "disabled"))
                 .put("blocked", state.optBoolean("blocked"))
                 .put("diagnostic", state.optString("diagnostic", ""))
                 .put("diagnostic_phase", state.optString("diagnostic_phase", ""))
@@ -105,10 +115,13 @@ final class Renewal {
                 } else if ("enable".equals(command)) {
                     if (!Arrays.asList("v2", "v1", "v1-native").contains(protocol)) throw new IOException("protocol_required");
                     if (!platform.supported()) throw new IOException("target_unsupported");
+                    if (state.has("transaction") || (!backendMatches() && (state.has("pending")
+                            || !"idle".equals(state.optString("phase", "idle")))))
+                        throw new IOException("backend_changed");
                     Keybox.read(target, pins, platform.now(), false);
                     if (!"idle".equals(state.optString("phase")) && !protocol.equals(state.optString("protocol")))
                         throw new IOException("pending_protocol_locked");
-                    state.put("protocol", protocol).put("protocol_configured", true);
+                    state.put("protocol", protocol).put("protocol_configured", true).put("backend", platform.backend());
                     save(); atomic(root.resolve("enabled"), new byte[]{'1'});
                 } else if ("resume".equals(command)) {
                     if ("installing".equals(state.optString("phase"))) throw new IOException("rollback_required");
@@ -161,6 +174,8 @@ final class Renewal {
     }
 
     private void tick() throws Exception {
+        if ((state.has("pending") || "issuing".equals(state.optString("phase")))
+                && !backendMatches()) throw new IOException("backend_changed");
         long now = platform.now();
         // Finish a recorded rollback even if renewal was disabled after the swap.
         if ("installing".equals(state.optString("phase"))) { recover(); return; }
@@ -262,7 +277,7 @@ final class Renewal {
         state.getJSONArray("owned").put(new JSONObject().put("kind", "backup").put("path", backup.toString())
                 .put("hash", current.hash).put("expires", current.expires));
         state.put("transaction", new JSONObject().put("backup", backup.toString()).put("old_hash", current.hash)
-                .put("new_hash", next.hash));
+                .put("new_hash", next.hash).put("backend", platform.backend()));
         state.put("phase", "installing").put("result", "installing"); save();
         Object cursor = platform.cursor();
         if (!Keybox.sha256(Keybox.readFile(target, 128 * 1024)).equals(current.hash)) {
@@ -271,6 +286,7 @@ final class Renewal {
             save(); return;
         }
         atomic(target, next.xml);
+        platform.reload(target);
         boolean accepted = platform.accepted(next.runtimeId, cursor);
         if (accepted && Keybox.sha256(Keybox.readFile(target, 128 * 1024)).equals(next.hash) && platform.supported()) {
             state.put("phase", "idle").put("result", "renewed").put("last_success", platform.now())
@@ -283,6 +299,8 @@ final class Renewal {
     /** A crash anywhere after recording a transaction restores the previous exact bytes. */
     private void recover() throws Exception {
         JSONObject transaction = state.getJSONObject("transaction");
+        if (!platform.backend().equals(transaction.optString("backend", "teesimulator")))
+            throw new IOException("backend_changed");
         Path restoreTarget = Paths.get(transaction.optString("target", target.toString()));
         Keybox.safePath(restoreTarget);
         if (!restoreTarget.startsWith(target.getParent())) throw new IOException("unowned_backup");
@@ -329,7 +347,7 @@ final class Renewal {
         state.put("manual_backup", existed ? backup.toString() : "");
         state.put("transaction", new JSONObject().put("backup", backup.toString())
                 .put("old_hash", oldHash).put("old_exists", existed).put("target", target.toString())
-                .put("new_hash", nextHash).put("kind", "manual"));
+                .put("new_hash", nextHash).put("kind", "manual").put("backend", platform.backend()));
         state.put("phase", "installing").put("result", "installing"); save();
         try {
             Object cursor = platform.cursor();
@@ -438,6 +456,7 @@ final class Renewal {
             try (FileOutputStream file = new FileOutputStream(temporary.toFile())) {
                 file.write(data); file.getFD().sync();
             }
+            FileMetadata.preserve(target, temporary);
             Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             // Persist the rename too. Directory fsync is supported by Android's Linux provider.
             try (FileChannel directory = FileChannel.open(target.getParent(), StandardOpenOption.READ)) { directory.force(true); }

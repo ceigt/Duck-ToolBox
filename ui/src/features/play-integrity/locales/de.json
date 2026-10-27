@@ -94,7 +94,9 @@
     "mismatch": "Build und zugehörige Systemeigenschaft haben verschiedene explizite Werte.",
     "provider": "Provider-Kompatibilität blockiert Zertifikatsketten. Prüfen Sie, ob dies benötigt wird.",
     "wildcard": "Nicht unterstütztes Muster: Nur ein führendes * für Suffixabgleich ist implementiert.",
-    "canary": "Canary behält Upstream-Heuristiken: Pixel 10a nutzt API 35 (laut Hinweis tatsächlich 36), unbekannte Geräte 37, board API 32. Sechs Wochen und Ersatz-Patchwerte sind Schätzungen, keine Google-Zusage oder Zertifikatsgültigkeit."
+    "canary": "Canary behält Upstream-Heuristiken: Pixel 10a nutzt API 35 (laut Hinweis tatsächlich 36), unbekannte Geräte 37, board API 32. Sechs Wochen und Ersatz-Patchwerte sind Schätzungen, keine Google-Zusage oder Zertifikatsgültigkeit.",
+    "vending_priority": "SDK-Kompatibilität des Play Store hat Vorrang vor dem Fingerprint.",
+    "pixel_patch_unknown": "Google-Build-Daten enthalten kein genaues Patchdatum; der Kandidat lässt es frei."
   },
   "strongHelp": "Setzt spoofProvider=0 für diesen Kandidaten. Build- und Eigenschafts-Patchwerte bleiben gleich; kein Urteil wird garantiert.",
   "recoveryTitle": "Konfigurationsänderung unterbrochen",
@@ -150,7 +152,10 @@
     "unobserved": "Werte im Zielprozess wurden nicht beobachtet. Diese Abfragen belegen weder eine Injektion noch ein Google-Ergebnis.",
     "values": "Feldvergleich anzeigen",
     "system": "Aktueller Systemwert",
-    "unknown": "Nicht verfügbar / nicht gesetzt"
+    "unknown": "Nicht verfügbar / nicht gesetzt",
+    "observed": "Revision und laufender Prozess dieses Starts stimmen überein. Lokale Diagnose, kein Google-Ergebnis.",
+    "runtimeError": "Prozesswerte nicht verfügbar. Ziel-Apps öffnen oder neu starten und aktualisieren.",
+    "hook": "Property-Callback-Hook installiert"
   },
   "history": {
     "title": "Testverlauf",
@@ -167,7 +172,13 @@
     "fail": "Fehlgeschlagen (gemeldet)",
     "context": "Konfiguration bei Erfassung",
     "clear": "Testverlauf löschen",
-    "clearHelp": "Alle manuellen Testeinträge werden entfernt. Konfigurationen bleiben erhalten."
+    "clearHelp": "Alle manuellen Testeinträge werden entfernt. Konfigurationen bleiben erhalten.",
+    "omitted": "Nicht zurückgegeben · Ursache unbekannt",
+    "import": "Entschlüsselten Bericht importieren",
+    "importHelp": "Entschlüsseltes Play-Integrity-JSON einfügen. Nur Labels sowie App- und Lizenzdaten werden gespeichert. Fehlende Labels gelten nicht als Fehlschlag.",
+    "report": "Entschlüsselter Integritätsbericht als JSON",
+    "installationSource": "Installationsquelle der Test-App (optional)",
+    "unverified": "Vom Benutzer importiert; Echtheit nicht geprüft."
   },
   "guide": {
     "title": "Regeln und Quellen",
@@ -179,5 +190,38 @@
     "community": "Im Oktober 2026 wurden Verbesserungen ohne PIF und Erfolge mit einzelnen Konfigurationen gemeldet. Auch PixelOS meldete eine Serveränderung. Die genauen Prüfungen sind unbekannt; eine allgemeine Pixel-Sperre oder Erfolgsgarantie für API 32–35 ist nicht belegt.",
     "canary": "Lädt einen Pixel-Canary-Kandidaten. Neuer bedeutet nicht unbedingt besser geeignet. Die Erstellung bereitet nur eine Vorschau vor.",
     "import": "Importierte oder eigene Konfiguration verwenden"
+  },
+  "pixel": {
+    "title": "Pixel-Fingerprints",
+    "help": "Google-Release-Daten abrufen, Gerät und Build wählen, dann prüfen. Vorauswahl: Pixel 6a. Kein Nachweis einer bestandenen Prüfung.",
+    "device": "Pixel-Gerät",
+    "build": "Release-Build",
+    "fetch": "Pixel-Builds abrufen",
+    "loading": "Wird abgerufen…",
+    "patchUnknown": "Das genaue Sicherheitspatchdatum ist unbekannt und wird weder geschätzt noch synchronisiert.",
+    "preview": "Gewählten Fingerprint prüfen"
+  },
+  "quick": {
+    "title": "Fingerprint-Einstellungen",
+    "vending": "Überschreibmodus des Play Store",
+    "vendingHelp": "Der Fingerprint-Modus ändert nur FINGERPRINT. SDK-Kompatibilität hat Vorrang.",
+    "off": "Aus",
+    "fingerprint": "Konfigurierten Fingerprint verwenden",
+    "custom": "Eigener Play-Store-Fingerprint",
+    "sdk": "SDK-Kompatibilitätsgrenze",
+    "all": "Alle drei Überschreibungen vorbereiten",
+    "draft": "Änderungen gelten für den Entwurf. Vor dem Speichern prüfen und anwenden."
+  },
+  "activation": {
+    "reboot": "Gespeichert. Gerät neu starten. Ein Neustart der PI-Prozesse reicht hierfür nicht aus.",
+    "process": "Gespeichert. PI-Prozesse neu starten, um die neuen Werte zu laden."
+  },
+  "patch": {
+    "help": "Ändert die Attestierungsrichtlinie, installiert aber keine Updates. Nicht gewählte Partitionen bleiben unverändert.",
+    "system": "System-Patch",
+    "vendor": "Vendor-Patch",
+    "boot": "Boot-Patch",
+    "preview": "Patch-Vorschau aktualisieren",
+    "draft": "Partitionsänderungen vor Auswahl der Synchronisierung erneut prüfen."
   }
 }

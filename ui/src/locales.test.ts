@@ -8,7 +8,22 @@ type Messages = Record<string, unknown>
 
 const root = path.dirname(fileURLToPath(import.meta.url))
 /** Translated in full. Tricky Addon's `ta` group follows upstream, so it is not counted. */
-const complete = ["zh-TW", "ja", "ko", "es-ES", "fr", "de", "it", "pt-BR", "ru", "ar", "vi", "id"]
+const complete = [
+  "zh-TW",
+  "ja",
+  "ko",
+  "es-ES",
+  "fr",
+  "de",
+  "it",
+  "pt-BR",
+  "ru",
+  "ar",
+  "vi",
+  "id",
+  "uk",
+  "pl",
+]
 const directories = [
   "core/i18n/locales",
   ...readdirSync(path.join(root, "features")).map((feature) => `features/${feature}/locales`),

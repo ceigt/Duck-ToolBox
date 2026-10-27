@@ -23,5 +23,5 @@ with tempfile.TemporaryDirectory(prefix='test-', dir=build) as temporary:
     subprocess.run([str(args.java_home / ('bin/javac' + suffix)), '--release', '8', '-encoding', 'UTF-8', '-cp', str(args.json_jar.resolve()), '-d', str(classes), *map(str, (root/'src').rglob('*.java')), *map(str, (root/'tests').rglob('*.java'))], check=True)
     subprocess.run([sys.executable, str(root/'tests/fixtures.py'), str(fixtures), '--openssl', args.openssl], check=True)
     shutil.copyfile(root.parent/'crates/duck-tricky-store/assets/aosp-keybox.xml', fixtures/'aosp.xml')
-    for name in ('RenewalTest', 'RegressionTest', 'AuditFixTest'):
+    for name in ('RenewalTest', 'RegressionTest', 'AuditFixTest', 'OmkTest'):
         subprocess.run([str(args.java_home/('bin/java'+suffix)), '-cp', os.pathsep.join([str(classes), str(args.json_jar.resolve())]), 'dev.duck.renewal.'+name, str(fixtures), str(directory/name)], check=True)

@@ -94,7 +94,9 @@
     "mismatch": "Build and the matching system property have different explicit values.",
     "provider": "Provider compatibility blocks certificate-chain requests; verify whether your setup needs it.",
     "wildcard": "Unsupported wildcard: only a leading * suffix match is implemented.",
-    "canary": "Canary retains upstream heuristics: Pixel 10a uses API 35 despite the noted actual 36; unknown devices use 37; board API uses 32. Six-week expiry and patch fallback are estimates, not Google acceptance or certificate validity."
+    "canary": "Canary retains upstream heuristics: Pixel 10a uses API 35 despite the noted actual 36; unknown devices use 37; board API uses 32. Six-week expiry and patch fallback are estimates, not Google acceptance or certificate validity.",
+    "vending_priority": "Play Store SDK compatibility is enabled and overrides its fingerprint replacement.",
+    "pixel_patch_unknown": "Google build metadata does not provide an exact security patch date. The candidate leaves it unset."
   },
   "strongHelp": "Sets spoofProvider=0 for this candidate. Build and property patch values stay paired; no verdict is guaranteed.",
   "recoveryTitle": "Interrupted configuration update",
@@ -150,7 +152,10 @@
     "unobserved": "Target process values have not been observed. These readings do not prove injection or a Google verdict.",
     "values": "Show field comparison",
     "system": "Current system reading",
-    "unknown": "Not available / not set"
+    "unknown": "Not available / not set",
+    "observed": "Readbacks match the saved configuration revision and a live process in this boot. They are local diagnostics, not a Google verdict.",
+    "runtimeError": "Process readbacks could not be loaded. Restart or open the target apps and refresh.",
+    "hook": "Property callback hook installed"
   },
   "history": {
     "title": "Test history",
@@ -167,7 +172,13 @@
     "fail": "Failed (reported)",
     "context": "Configuration at recording",
     "clear": "Clear test history",
-    "clearHelp": "All manual test records will be removed. Configurations are retained."
+    "clearHelp": "All manual test records will be removed. Configurations are retained.",
+    "omitted": "Not returned · reason unknown",
+    "import": "Import decoded report",
+    "importHelp": "Paste decoded Play Integrity JSON. Only verdict labels and app/license details are retained. Missing labels are not treated as failed checks.",
+    "report": "Decoded integrity report JSON",
+    "installationSource": "Test app installation source (optional)",
+    "unverified": "Imported report supplied by the user; authenticity has not been verified."
   },
   "guide": {
     "title": "Rules and references",
@@ -179,5 +190,38 @@
     "community": "October 2026 reports describe changed results, including improvement after disabling PIF and success with some specific configurations. PixelOS also reported a server-side change. The exact checks are unpublished; neither a universal Pixel ban nor an API 32–35 pass rule is established.",
     "canary": "This downloads a Pixel Canary candidate. Newer does not necessarily suit your device better. Generation prepares a preview and does not apply it.",
     "import": "Use an imported or custom configuration instead"
+  },
+  "pixel": {
+    "title": "Pixel fingerprints",
+    "help": "Fetch Google release metadata, select a device and build, then preview. Pixel 6a is selected initially. This does not establish Google acceptance.",
+    "device": "Pixel device",
+    "build": "Release build",
+    "fetch": "Fetch Pixel builds",
+    "loading": "Fetching…",
+    "patchUnknown": "Exact security patch date is unavailable. No patch date is inferred or synchronized.",
+    "preview": "Preview selected fingerprint"
+  },
+  "quick": {
+    "title": "Fingerprint controls",
+    "vending": "Play Store override mode",
+    "vendingHelp": "Play Store fingerprint mode changes FINGERPRINT only. SDK compatibility takes precedence over fingerprint replacement.",
+    "off": "Off",
+    "fingerprint": "Use configured fingerprint",
+    "custom": "Custom Play Store fingerprint",
+    "sdk": "SDK compatibility ceiling",
+    "all": "Prepare all three overrides",
+    "draft": "Changes affect this draft. Preview and apply to save them."
+  },
+  "activation": {
+    "reboot": "Configuration saved. Reboot the device to finish activation; restarting PI processes does not clear this requirement.",
+    "process": "Configuration saved. Restart PI processes to load the new values."
+  },
+  "patch": {
+    "help": "These changes affect attestation policy, not installed security updates. Unselected partitions retain their configuration.",
+    "system": "System patch",
+    "vendor": "Vendor patch",
+    "boot": "Boot patch",
+    "preview": "Update patch preview",
+    "draft": "Partition edits are not previewed. Update the preview before selecting synchronization."
   }
 }

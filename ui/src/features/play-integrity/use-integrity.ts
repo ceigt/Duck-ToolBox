@@ -107,11 +107,14 @@ export function useIntegrity() {
               target: patch.target.id,
               patch: patch.preview.patch,
               revision: patch.preview.revision,
+              partitions: patch.preview.partitions,
             }
           : undefined,
       )
       backup.value = applied.backup
       content.value = applied.config.content
+      if (applied.restart_required)
+        notifySuccess(t(patch ? "activation.reboot" : "activation.process"))
     } finally {
       await refresh()
     }
@@ -157,6 +160,14 @@ export function useIntegrity() {
     refresh,
     apply,
     prepare,
+    patchPreview: (id: string, partitions: Record<string, string>) =>
+      action(async () => {
+        const item = patches.value.find((p) => p.target.id === id)
+        if (!item) return
+        const next = await item.target.preview(item.preview.patch, partitions)
+        if (!next) throw new Error("Keystore backend is no longer active")
+        item.preview = next
+      }),
     previewContent: (migrate = false) =>
       action(async () => prepare(await integrityApi.preview(content.value, "auto", migrate))),
     importSource: (source: string) =>
@@ -196,6 +207,7 @@ export function useIntegrity() {
       action(async () => {
         const result = await integrityApi.restart()
         log.value = JSON.stringify(result.processes, null, 2)
+        await refresh()
         notifySuccess(t("restartSent"))
       }),
     diagnose: () =>

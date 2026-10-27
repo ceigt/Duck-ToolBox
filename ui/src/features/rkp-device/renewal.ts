@@ -4,6 +4,8 @@ import { duckd } from "@/core/duckd"
 
 export const renewalSchema = z.object({
   enabled: z.boolean(),
+  backend: z.enum(["teesimulator", "ohmykeymint"]).default("teesimulator"),
+  target_path: z.string().default("/data/adb/teesim/keybox.xml"),
   protocol: z.enum(["v2", "v1", "v1-native"]),
   protocol_configured: z.boolean(),
   diagnostic: z.string().optional(),

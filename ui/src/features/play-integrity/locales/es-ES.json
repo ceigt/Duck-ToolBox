@@ -94,7 +94,9 @@
     "mismatch": "Build y su propiedad correspondiente tienen valores explícitos diferentes.",
     "provider": "La compatibilidad Provider bloquea cadenas de certificados. Comprueba si es necesaria.",
     "wildcard": "Patrón no compatible: solo se implementa * inicial para sufijos.",
-    "canary": "Canary conserva heurísticas originales: Pixel 10a usa API 35 (nota: real 36), dispositivos desconocidos 37, board API 32. Las seis semanas y el parche alternativo son estimaciones, no aceptación de Google ni vigencia de certificados."
+    "canary": "Canary conserva heurísticas originales: Pixel 10a usa API 35 (nota: real 36), dispositivos desconocidos 37, board API 32. Las seis semanas y el parche alternativo son estimaciones, no aceptación de Google ni vigencia de certificados.",
+    "vending_priority": "La compatibilidad SDK de Play Store tiene prioridad sobre la huella.",
+    "pixel_patch_unknown": "Los datos de Google no indican la fecha exacta del parche; el candidato la deja sin establecer."
   },
   "strongHelp": "Establece spoofProvider=0 para el candidato. Conserva valores de parche coherentes entre Build y propiedad; no garantiza resultados.",
   "recoveryTitle": "Actualización de configuración interrumpida",
@@ -150,7 +152,10 @@
     "unobserved": "No se han observado los valores del proceso de destino. Estas lecturas no prueban la inyección ni un veredicto de Google.",
     "values": "Mostrar comparación de campos",
     "system": "Lectura actual del sistema",
-    "unknown": "No disponible / sin definir"
+    "unknown": "No disponible / sin definir",
+    "observed": "Coinciden la revisión y un proceso activo de este arranque. Diagnóstico local, no veredicto de Google.",
+    "runtimeError": "No se pudieron leer los procesos. Abre o reinicia las aplicaciones de destino y actualiza.",
+    "hook": "Hook de lectura de propiedades instalado"
   },
   "history": {
     "title": "Historial de pruebas",
@@ -167,7 +172,13 @@
     "fail": "Fallida (declarado)",
     "context": "Configuración al registrar",
     "clear": "Borrar historial",
-    "clearHelp": "Se eliminarán todas las observaciones manuales. Las configuraciones se conservan."
+    "clearHelp": "Se eliminarán todas las observaciones manuales. Las configuraciones se conservan.",
+    "omitted": "No devuelto · motivo desconocido",
+    "import": "Importar informe decodificado",
+    "importHelp": "Pega el JSON de Play Integrity decodificado. Solo se guardan etiquetas y datos de aplicación y licencia. La ausencia de etiquetas no se trata como fallo.",
+    "report": "Informe de integridad decodificado JSON",
+    "installationSource": "Origen de instalación de la aplicación de prueba (opcional)",
+    "unverified": "Informe importado por el usuario; autenticidad no verificada."
   },
   "guide": {
     "title": "Reglas y referencias",
@@ -179,5 +190,38 @@
     "community": "En octubre de 2026 se informaron mejoras al desactivar PIF y éxitos con ciertas configuraciones. PixelOS también comunicó un cambio del servidor. Las comprobaciones exactas no son públicas; no se ha demostrado un bloqueo universal de Pixel ni éxito garantizado con API 32–35.",
     "canary": "Descarga un candidato Pixel Canary. Más reciente no significa más adecuado para tu dispositivo. Solo prepara una vista previa.",
     "import": "Usar una configuración importada o personalizada"
+  },
+  "pixel": {
+    "title": "Huellas Pixel",
+    "help": "Obtén versiones oficiales de Google, elige dispositivo y compilación y revisa. Pixel 6a es la selección inicial; no garantiza superar la verificación.",
+    "device": "Dispositivo Pixel",
+    "build": "Compilación oficial",
+    "fetch": "Obtener compilaciones Pixel",
+    "loading": "Obteniendo…",
+    "patchUnknown": "Se desconoce la fecha exacta del parche; no se deduce ni se sincroniza.",
+    "preview": "Revisar la huella seleccionada"
+  },
+  "quick": {
+    "title": "Controles de huella",
+    "vending": "Modo de sustitución de Play Store",
+    "vendingHelp": "El modo de huella solo cambia FINGERPRINT. La compatibilidad SDK tiene prioridad.",
+    "off": "Desactivado",
+    "fingerprint": "Usar la huella configurada",
+    "custom": "Huella personalizada de Play Store",
+    "sdk": "Límite de compatibilidad SDK",
+    "all": "Preparar las tres sustituciones",
+    "draft": "Los cambios afectan al borrador. Revisa y aplica para guardar."
+  },
+  "activation": {
+    "reboot": "Configuración guardada. Reinicia el dispositivo; reiniciar los procesos PI no basta.",
+    "process": "Configuración guardada. Reinicia los procesos PI para cargar los nuevos valores."
+  },
+  "patch": {
+    "help": "Cambia la política de atestación, sin instalar actualizaciones. Se conservan las particiones no seleccionadas.",
+    "system": "Parche del sistema",
+    "vendor": "Parche Vendor",
+    "boot": "Parche Boot",
+    "preview": "Actualizar vista previa de parches",
+    "draft": "Revisa los cambios de particiones antes de seleccionar la sincronización."
   }
 }

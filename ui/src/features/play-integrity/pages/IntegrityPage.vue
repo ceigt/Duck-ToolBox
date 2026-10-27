@@ -22,6 +22,7 @@ import SectionCard from "@/core/components/SectionCard.vue"
 import { useCopy } from "@/core/links"
 import { notifyError } from "@/core/notify"
 import EnginePower from "../components/EnginePower.vue"
+import PixelFingerprints from "../components/PixelFingerprints.vue"
 import RecoveryNotice from "../components/RecoveryNotice.vue"
 import ConfigFields from "../components/ConfigFields.vue"
 import SettingDetails from "../components/SettingDetails.vue"
@@ -162,6 +163,20 @@ async function importFile(event: Event) {
     </div>
     <fieldset :disabled="s.busy.value" class="flex min-w-0 flex-1 flex-col gap-5 px-4 pt-5 pb-6">
       <RecoveryNotice />
+      <p
+        v-if="data?.reboot_required"
+        role="status"
+        class="rounded-xl border bg-muted/50 p-4 text-sm"
+      >
+        {{ t("activation.reboot") }}
+      </p>
+      <p
+        v-else-if="data?.process_restart_required"
+        role="status"
+        class="rounded-xl border bg-muted/50 p-4 text-sm"
+      >
+        {{ t("activation.process") }}
+      </p>
       <QueryState
         :loading="s.status.isPending.value"
         :error="s.status.error.value"
@@ -185,7 +200,6 @@ async function importFile(event: Event) {
             }}
           </p>
           <p class="text-muted-foreground mt-4 text-sm leading-6">{{ t("activationHelp") }}</p>
-          <p v-if="data?.reboot_required" class="mt-2 text-sm">{{ t("reboot") }}</p>
           <p v-if="data?.conflicts.length" class="text-destructive mt-2 text-sm">
             {{ data.conflicts.join(", ") }}
           </p>
@@ -296,6 +310,10 @@ async function importFile(event: Event) {
             >
           </QueryState>
         </SectionCard>
+        <PixelFingerprints
+          v-if="section === 'generate'"
+          @preview="(value) => s.action(() => s.prepare(value))"
+        />
         <SectionCard
           v-if="section === 'generate'"
           :title="t('nav.generate')"
@@ -439,6 +457,7 @@ async function importFile(event: Event) {
           !!s.transaction.data.value?.pending
         "
         @apply="s.action(s.apply)"
+        @patch-preview="s.patchPreview"
         @select="
           (id, selected) => {
             const patch = s.patches.value.find((item) => item.target.id === id)

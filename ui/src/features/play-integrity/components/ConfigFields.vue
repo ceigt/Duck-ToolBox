@@ -15,6 +15,7 @@ import { useIntegrityI18n } from "../i18n"
 import { identityPairs } from "../fields"
 import IdentityFields from "./IdentityFields.vue"
 import SettingDetails from "./SettingDetails.vue"
+import QuickControls from "./QuickControls.vue"
 
 const entries = defineModel<Record<string, string>>({ required: true })
 const { t } = useIntegrityI18n()
@@ -46,6 +47,7 @@ function add() {
 <template>
   <div class="flex flex-col gap-6">
     <p class="text-muted-foreground text-sm">{{ t("fieldsHelp") }}</p>
+    <QuickControls v-model="entries" />
     <IdentityFields v-model="entries" />
     <SettingDetails :title="t('editing.advanced')">
       <div class="flex flex-col gap-5">

@@ -28,6 +28,8 @@ vi.mock("../i18n", () => ({
 
 const initial: RenewalStatus = {
   enabled: false,
+  backend: "teesimulator",
+  target_path: "/data/adb/teesim/keybox.xml",
   protocol: "v2",
   protocol_configured: false,
   phase: "idle",
@@ -72,7 +74,7 @@ function panel(
         KeyValueList: { name: "KeyValueList", props: ["rows"], template: "<div />" },
         ConfirmDialog: {
           name: "ConfirmDialog",
-          props: ["open"],
+          props: ["open", "description"],
           emits: ["confirm"],
           template: "<div />",
         },
@@ -86,6 +88,25 @@ afterEach(() => {
 })
 
 describe("renewal opt-in", () => {
+  it("shows OMK target and requires its additional key-retirement consent", async () => {
+    const wrapper = panel(true, {
+      backend: "ohmykeymint",
+      target_path: "/data/misc/keystore/omk/keybox.xml",
+      protocol: "v1",
+      protocol_configured: true,
+    })
+    await flushPromises()
+    expect(wrapper.text()).toContain("/data/misc/keystore/omk/keybox.xml")
+    await wrapper
+      .findAll("button")
+      .find((b) => b.text() === "renewal.enable")!
+      .trigger("click")
+    expect(wrapper.findComponent({ name: "ConfirmDialog" }).props("description")).toContain(
+      "renewal.omkConsent",
+    )
+    expect(renewalApi.enable).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
   it("recovers an interrupted import while renewal is disabled", async () => {
     const wrapper = panel(true, { enabled: false, phase: "installing", recovery_required: true })
     vi.mocked(renewalApi.recover).mockResolvedValue({ ...initial, result: "rolled_back" })

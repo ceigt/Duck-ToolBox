@@ -101,7 +101,7 @@
   },
   "renewal": {
     "title": "RKP 自动续签（本地修改版）",
-    "description": "TEESimulator · 每 6 小时本地检查 · 剩余 24 小时续签 · 默认关闭",
+    "description": "TEESimulator / OhMyKeymint · 每 6 小时本地检查 · 剩余 24 小时续签 · 默认关闭",
     "state": "自动续签",
     "on": "已开启",
     "off": "已关闭",
@@ -113,7 +113,7 @@
     "result": "运行状态",
     "retry": "最早可重试时间",
     "unsupportedTitle": "当前无法启用续签",
-    "unsupported": "本版本只支持已启用的 TEESimulator（versionCode ≥ 75）、单个 default / patch 配置、keybox.xml，以及可在本地验证的 Google 根证书链和单把 P-256 Keybox。",
+    "unsupported": "需要启用受支持的单一后端：TEESimulator code≥75（单 default/patch、keybox.xml），或 ITxiao6666/OhMyKeymint code≥222（固定 keybox.xml），并使用可本地验证的 Google 根 P-256 Keybox。迁移后需重新确认开启。",
     "paused": "自动操作已暂停",
     "pausedDescription": "请先核对状态及证书文件。请求结果未知时不要盲目重新签发；能够回滚时会保留并恢复旧文件。",
     "privacy": "到期检查不联网。只有到期续签或验证待应用的新证书才联网；CSR 发送公开证明数据，Keybox 私钥保留在本机。只清理本功能产生且未经更改的过期文件。模块加载成功不代表已验证 Play Integrity 结果。",
@@ -122,7 +122,7 @@
     "disable": "关闭续签",
     "check": "立即检查（遵守到期窗口）",
     "resume": "人工核对后解除暂停",
-    "consent": "开启后，整条证书链剩余不超过 24 小时时，将用所选接口向 Google 请求续签。手机运行期间约每 6 小时检查一次，每滚动 24 小时最多尝试两次；普通到期检查不联网。续签调用与手动签发相同的厂商 KeyMint 接口，兼容性取决于固件。新文件通过验证后备份替换，核对 TEESimulator 加载结果，失败则回滚。本地修改版尚未完成真实自动签发的整流程测试。",
+    "consent": "开启后，整条证书链剩余不超过 24 小时时，将用所选接口向 Google 请求续签。手机运行期间约每 6 小时检查一次，每滚动 24 小时最多尝试两次；普通到期检查不联网。续签调用与手动签发相同的厂商 KeyMint 接口，兼容性取决于固件。新文件通过验证后备份替换，核对 TEESimulator / OhMyKeymint 加载结果，失败则回滚。本地修改版尚未完成真实自动签发的整流程测试。",
     "resumeConsent": "请先确认上次请求是否已生成证书。超时或中断后解除暂停可能允许再次请求，而 Google 可能已接受上次请求。已有冷却时间和次数限制不会清空；如果已有待应用证书，会复用它，不重复签发。 若为时钟校正，恢复后至少冷却 24 小时，并保留请求次数。",
     "results": {
       "disabled": "已关闭",
@@ -136,20 +136,21 @@
       "pending_expired": "待应用证书即将过期，请人工核对",
       "target_changed": "目标或证书已改变，请人工核对",
       "new_certificate_revoked": "新证书在吊销列表中，保留旧文件",
-      "installing": "正在替换并等待 TEESimulator 确认",
-      "renewed": "新证书已验证并被 TEESimulator 加载",
+      "installing": "正在替换并等待 TEESimulator / OhMyKeymint 确认",
+      "renewed": "新证书已验证并被 TEESimulator / OhMyKeymint 加载",
       "rolled_back": "未确认替换成功；旧文件已恢复并加载",
       "rollback_unconfirmed": "未能确认恢复或加载旧文件，请人工检查",
       "submission_unknown": "上次请求结果未知，已停止自动重试",
       "submission_review_required": "签发失败，请人工核对后再重试",
       "request_failed_retry": "请求失败，等待冷却后重试",
-      "target_unsupported": "TEESimulator 或配置不受支持、未启用",
+      "target_unsupported": "TEESimulator / OhMyKeymint 或配置不受支持、未启用",
       "clock_invalid": "时间异常或发生回拨，请检查系统时间",
       "local_check_failed": "本地验证失败，请人工核对",
       "manual_resume": "已人工解除暂停，仍遵守冷却时间",
       "storage_review_required": "本功能文件记录已满，请检查历史产物",
       "pending_discarded": "已放弃候选证书，保留限频",
-      "rollback_absent_unconfirmed": "原文件不存在，已删除新文件；运行状态仍需检查"
+      "rollback_absent_unconfirmed": "原文件不存在，已删除新文件；运行状态仍需检查",
+      "backend_confirmation_required": "后端已迁移；请核对目标后重新开启"
     },
     "chooseProtocol": "请选择已成功的签发接口",
     "saveProtocol": "保存接口",
@@ -161,9 +162,11 @@
       "operation_busy": "另一个操作正在进行，请稍后重试",
       "certificate_invalid": "本地证书验证失败",
       "storage_io_failed": "文件读写失败，请检查空间及权限",
-      "state_or_response_invalid": "状态或返回数据格式错误"
+      "state_or_response_invalid": "状态或返回数据格式错误",
+      "backend_changed": "旧后端有未完成证书或恢复事务；请先处理，禁止跨后端恢复"
     },
     "recover": "恢复未完成的替换",
-    "recoverConfirm": "恢复原文件，不开启续签或请求证书。若原文件不存在，则恢复原来的缺失状态，运行状态仍需检查。"
+    "recoverConfirm": "恢复原文件，不开启续签或请求证书。若原文件不存在，则恢复原来的缺失状态，运行状态仍需检查。",
+    "omkConsent": "OhMyKeymint 注意：更换 Keybox 会清理与旧 Keybox 身份绑定的部分证明密钥，相关应用可能需要重新注册。回滚只能恢复 Keybox 文件，不能恢复已清理的应用密钥。加载确认依据新的 watcher 日志及文件、配置、进程一致性，不代表 Play 完整性结果。是否接受并开启？"
   }
 }

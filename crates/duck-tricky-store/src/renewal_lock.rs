@@ -28,12 +28,12 @@ impl Drop for RenewalLease {
 }
 
 pub(crate) fn acquire(ctx: &Context) -> Result<Option<RenewalLease>> {
-    let module = ctx.sysroot.path("/data/adb/modules/teesim");
     if !cfg!(target_os = "android")
         || ctx.sysroot.root() != std::path::Path::new("/")
-        || !module.is_dir()
-        || module.join("disable").exists()
-        || module.join("remove").exists()
+        || !["teesim", "oh_my_keymint"].iter().any(|id| {
+            let module = ctx.sysroot.path(format!("/data/adb/modules/{id}"));
+            module.is_dir() && !module.join("disable").exists() && !module.join("remove").exists()
+        })
     {
         return Ok(None);
     }

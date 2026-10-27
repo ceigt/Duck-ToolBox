@@ -6,6 +6,36 @@ use reqwest::{Client, Method};
 use rustls::{ClientConfig, RootCertStore};
 use std::{path::Path, time::Duration};
 
+pub fn client(timeout: Duration) -> Result<Client> {
+    let mut roots = RootCertStore::empty();
+    roots.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
+    let mut tls = ClientConfig::builder()
+        .with_root_certificates(roots)
+        .with_no_client_auth();
+    tls.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec()];
+    Ok(Client::builder()
+        .https_only(true)
+        .tls_backend_preconfigured(tls)
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(4))
+        .timeout(timeout)
+        .build()?)
+}
+
+pub async fn body(mut response: reqwest::Response, limit: usize) -> Result<String> {
+    if !response.status().is_success() {
+        bail!("metadata request returned {}", response.status());
+    }
+    let mut bytes = Vec::new();
+    while let Some(chunk) = response.chunk().await? {
+        if bytes.len() + chunk.len() > limit {
+            bail!("metadata response too large");
+        }
+        bytes.extend_from_slice(&chunk);
+    }
+    Ok(String::from_utf8(bytes)?)
+}
+
 pub async fn fetch(args: &[String]) -> Result<()> {
     let mut output = None;
     let mut log = None;
